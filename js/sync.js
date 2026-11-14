@@ -19,9 +19,10 @@
   const CFG = window.KK_FIREBASE;
   const META_KEY = "kartTakip_syncMeta";   // şifresiz: yalnızca { lastSyncAt, lastDir } — zarar vermez
   const DEVICE_KEY = "kartTakip_deviceId"; // şifresiz, rastgele — yalnızca "bu değişiklik hangi cihazdan geldi" ayrımı için
+  const SKIP_KEY = "kartTakip_syncSkip";   // kullanıcı açılış ekranında "giriş yapmadan devam et" dediyse bir daha sorma
 
   let auth = null, db = null, status = "idle", lastError = null;
-  let pushTimer = null, unsub = null, pendingRemote = null, applyingRemote = false;
+  let pushTimer = null, unsub = null, pendingRemote = null, applyingRemote = false, gateActive = false;
 
   const ready = () => !!(CFG && CFG.apiKey && window.firebase);
 
@@ -40,11 +41,16 @@
       firebase.initializeApp(CFG);
       auth = firebase.auth();
       db = firebase.firestore();
+      let firstCheck = true;
       auth.onAuthStateChanged(async user => {
         if (user) {
           startListening();
           try { const snap = await docRef().get(); if (!snap.exists) await pushNow(); } catch (e) { /* dinleyici zaten deneyecek */ }
-        } else stopListening();
+        } else {
+          stopListening();
+          if (firstCheck && !skipped()) showGate();   // yalnızca sayfa ilk açıldığında ve daha önce "yerel kullan" denmediyse
+        }
+        firstCheck = false;
         if (App.DB) App.render();
       });
     } catch (e) { lastError = e.message; }
@@ -68,6 +74,28 @@
   /* ---------------- giriş / çıkış ---------------- */
   async function login(email, pass) { init(); await auth.signInWithEmailAndPassword(email, pass); }
   async function logout() { stopListening(); await auth.signOut(); }
+  function skipped() { try { return localStorage.getItem(SKIP_KEY) === "1"; } catch (e) { return false; } }
+  function markSkip() { try { localStorage.setItem(SKIP_KEY, "1"); } catch (e) { /* yoksay */ } }
+
+  /* ---------------- açılış ekranı: sayfa yüklenince bir kez sorar ---------------- */
+  function showGate() {
+    gateActive = true;
+    App.modal(`
+      ${App.mh("Senkron", "Cihazlar arası senkron için giriş yap")}
+      <div class="row2">
+        <div><label class="lbl" style="margin-top:0">E-posta</label><input type="text" id="agEmail" autocomplete="username" autofocus></div>
+        <div><label class="lbl" style="margin-top:0">Şifre</label><input type="password" id="agPass" autocomplete="current-password"></div>
+      </div>
+      <div class="btnrow"><button class="btn" id="agLogin">Giriş yap</button><button class="btn ghost" data-close>Bu cihazda yalnızca yerel kullan</button></div>
+      <div class="note" style="margin-top:10px">Hesabı Firebase konsolundan sen oluşturdun. Giriş yapmazsan uygulama eskisi gibi yalnızca bu tarayıcıda
+        çalışır; istersen sonra Ayarlar'dan giriş yaparsın.</div>`);
+    $("#agLogin").onclick = async () => {
+      const email = val("agEmail").trim(), pass = val("agPass");
+      if (!email || !pass) return toast("E-posta ve şifre gir");
+      try { await login(email, pass); gateActive = false; App.closeModal(); toast("Giriş yapıldı, senkron açıldı"); }
+      catch (e) { toast("Giriş başarısız: " + friendlyErr(e)); }
+    };
+  }
 
   /* ---------------- gönder ---------------- */
   async function pushNow() {
@@ -115,6 +143,7 @@
   const origCloseModal = App.closeModal;
   App.closeModal = function (...args) {
     const r = origCloseModal.apply(App, args);
+    if (gateActive) { gateActive = false; markSkip(); }   // açılış ekranı X/Esc/"yerel kullan" ile kapandı — giriş yapılmadıysa bir daha sorma
     if (pendingRemote) { const obj = pendingRemote; pendingRemote = null; applyingRemote = true; App.replaceDB(obj, "Diğer cihazdan senkronize edildi"); applyingRemote = false; }
     return r;
   };
@@ -148,13 +177,9 @@
     if (!auth) init();
     const user = auth && auth.currentUser;
     if (!user) return `
-      <div class="row2">
-        <div><label class="lbl" style="margin-top:0">E-posta</label><input type="text" id="syEmail" autocomplete="username"></div>
-        <div><label class="lbl" style="margin-top:0">Şifre</label><input type="password" id="syPass" autocomplete="current-password"></div>
-      </div>
-      <div class="btnrow"><button class="btn" id="syLogin">Giriş yap</button></div>
-      <div class="note" style="margin-top:10px">Hesabı Firebase konsolundan (Authentication → Users) sen oluşturdun; burada yalnızca giriş yapılır.
-        Giriş yapınca senkron hemen, tam otomatik açılır.</div>`;
+      <div class="kv-line"><span>Durum</span><span class="num">Kapalı</span></div>
+      <div class="btnrow"><button class="btn ghost sm" id="syOpenGate">Giriş yap</button></div>
+      <div class="note" style="margin-top:10px">Giriş yaparsan bu cihazdaki ve başka cihazlardaki veriler tam otomatik, iki yönlü senkronize olur.</div>`;
     const meta = loadMeta();
     return `
       <div class="kv-line"><span>Hesap</span><span class="num">${esc(user.email)}</span></div>
@@ -167,11 +192,7 @@
   }
   function bind(el) {
     const on = (sel, fn) => { const e = $(sel, el); if (e) e.onclick = fn; };
-    on("#syLogin", async () => {
-      const email = val("syEmail").trim(), pass = val("syPass");
-      if (!email || !pass) return toast("E-posta ve şifre gir");
-      try { await login(email, pass); toast("Giriş yapıldı, senkron açıldı"); } catch (e) { toast("Giriş başarısız: " + friendlyErr(e)); }
-    });
+    on("#syOpenGate", showGate);
     on("#syNow", syncNow);
     on("#syLogout", async () => { await logout(); App.render(); });
   }
