@@ -20,9 +20,11 @@ service cloud.firestore {
     match /kartkokpiti/{doc} {
       allow read: if isOwner();
       allow create, update: if isOwner()
-        && request.resource.data.keys().hasOnly(['data', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['data', 'writerId', 'updatedAt'])
         && request.resource.data.data is string
-        && request.resource.data.data.size() < 900000;
+        && request.resource.data.data.size() < 900000
+        && request.resource.data.writerId is string
+        && request.resource.data.writerId.size() < 100;
       allow delete: if isOwner();
     }
 
