@@ -1,0 +1,9 @@
+# yerel geliştirme notları ve araç klasörleri — depoya girmez
+CLAUDE.md
+.claude/
+node_modules/
+*.bak
+# kişisel veri yedekleri depoya girmesin
+kart-kokpiti-yedek*.json
+*yedek*.json
+*.xlsx

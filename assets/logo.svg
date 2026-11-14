@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Kart Kokpiti">
+  <defs>
+    <linearGradient id="kk-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4C5BD4"/>
+      <stop offset="1" stop-color="#7C5CD6"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#kk-bg)"/>
+  <rect x="9" y="15" width="46" height="34" rx="6" fill="#fff" fill-opacity=".14" stroke="#fff" stroke-width="2.5"/>
+  <rect x="14" y="20" width="9" height="6.5" rx="1.5" fill="#fff" fill-opacity=".85"/>
+  <path d="M19.5 42a12.5 12.5 0 0 1 25 0" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M19.5 42a12.5 12.5 0 0 1 17-11.6" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M32 42l8.5-9" stroke="#FFD166" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="32" cy="42" r="3" fill="#FFD166"/>
+</svg>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kart Kokpiti</title>
+<meta name="theme-color" content="#4C5BD4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=20261114">
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand"><img class="logo" src="assets/logo.svg" alt="" width="30" height="30">Kart Kokpiti</div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="ozet" class="active">Özet</button>
+      <button data-tab="kartlar">Kartlar</button>
+      <button data-tab="ortak">Ortak Harcamalar</button>
+      <button data-tab="ayarlar">Ayarlar</button>
+    </nav>
+    <span class="spacer"></span>
+    <button class="iconbtn" id="keysBtn" data-ic="keyboard" data-act="showKeys" title="Klavye kısayolları (?)" aria-label="Klavye kısayolları"></button>
+    <button class="iconbtn" id="themeBtn" title="Açık / koyu tema" aria-label="Tema"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="page active" id="page-ozet"></section>
+  <section class="page" id="page-kartlar"></section>
+  <section class="page" id="page-ortak"></section>
+  <section class="page" id="page-ayarlar"></section>
+  <footer>Kart Kokpiti · Hasan Akkaya · <a href="https://github.com/hasanakkaya0" target="_blank" rel="noopener">gh/hasanakkaya0</a> · veriler yalnızca bu tarayıcıda saklanır</footer>
+</main>
+
+<nav class="bottomnav" id="bottomnav">
+  <button data-tab="ozet" class="active"><span class="ic" data-ic="dash"></span>Özet</button>
+  <button data-tab="kartlar"><span class="ic" data-ic="card"></span>Kartlar</button>
+  <button data-tab="ortak"><span class="ic" data-ic="fx"></span>Ortak</button>
+  <button data-tab="ayarlar"><span class="ic" data-ic="settings"></span>Ayarlar</button>
+</nav>
+
+<button class="fab" id="fab" aria-label="Hızlı ekle">+</button>
+<div class="menu" id="fabMenu">
+  <button data-act="quickPay" data-ic="card">Ödeme yaptım</button>
+  <button data-act="quickStatement" data-ic="receipt">Ekstre geldi</button>
+  <button data-act="periodUpdate" data-ic="cart">Dönem içi harcamaları güncelle</button>
+  <button data-act="quickShared" data-ic="fx">Ortak harcama ekle</button>
+  <details class="menu-more">
+    <summary>Diğer işlemler ve araçlar</summary>
+    <button data-act="batchStatement" data-ic="layers">Toplu ekstre gir</button>
+    <button data-act="pendNew" data-ic="hourglass">Bekleyen işlem ekle</button>
+    <button data-act="openPlanner" data-ic="bulb">Elimdeki parayı dağıt</button>
+    <button data-act="openPayoff" data-ic="flag">Borç bitiş planı</button>
+  </details>
+</div>
+
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="js/core.js?v=20261114"></script>
+<script src="js/app.js?v=20261114"></script>
+<script src="js/ozet.js?v=20261114"></script>
+<script src="js/kartlar.js?v=20261114"></script>
+<script src="js/ayarlar.js?v=20261114"></script>
+<script src="js/shared.js?v=20261114"></script>
+<script src="js/io.js?v=20261114"></script>
+<script>App.init();</script>
+</body>
+</html>
