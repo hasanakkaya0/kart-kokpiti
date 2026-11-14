@@ -1,0 +1,34 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Only the listed account (uid) can read or write anything.
+    // The "owner" account is created in Firebase Console > Authentication > Users,
+    // and its uid is pasted here, then deployed with:
+    //   npx --yes firebase-tools deploy --only firestore:rules --project kart-kokpiti-hasan
+    // Anyone else who signs in gets a different uid, which is not in this list,
+    // so they cannot reach anything below.
+    function isOwner() {
+      return request.auth != null
+        && request.auth.uid in [
+          'THgLZvx6XMXcbXw54DtIA2NlKH13'
+        ];
+    }
+
+    // All app data lives under one namespace, one document per logical blob
+    // (kept small and few so the free quota is never a concern for one person).
+    match /kartkokpiti/{doc} {
+      allow read: if isOwner();
+      allow create, update: if isOwner()
+        && request.resource.data.keys().hasOnly(['data', 'updatedAt'])
+        && request.resource.data.data is string
+        && request.resource.data.data.size() < 900000;
+      allow delete: if isOwner();
+    }
+
+    // Nothing else is reachable, by anyone.
+    match /{other=**} {
+      allow read, write: if false;
+    }
+  }
+}

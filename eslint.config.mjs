@@ -33,7 +33,8 @@ export default [
       sourceType: "script",
       ecmaVersion: 2022,
       // XLSX: io.js'in sonradan yüklediği kütüphane · module: core.js'in Node testleri için dışa aktarımı
-      globals: { ...browser, XLSX: "readonly", module: "writable" },
+      // firebase: index.html'in CDN'den yüklediği Firebase compat SDK (sync.js, isteğe bağlı)
+      globals: { ...browser, XLSX: "readonly", module: "writable", firebase: "readonly", btoa: "readonly", atob: "readonly", sessionStorage: "readonly" },
     },
     plugins: { kk },
     rules: { "no-undef": "error", "kk/no-template-in-string": "error" },

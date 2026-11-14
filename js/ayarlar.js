@@ -44,6 +44,9 @@
         <div class="note" style="margin-top:12px">Veriler yalnızca bu tarayıcıda saklanır, hiçbir sunucuya gitmez. Telefon ve bilgisayar arasında taşımak için yedek dosyasını indirip diğer cihazda yükle.</div>
       </div>
 
+      <div class="sec-title"><h2>Senkron</h2><span class="hint">uçtan uca şifreli · isteğe bağlı</span></div>
+      <div class="card" id="syncCard"></div>
+
       <div class="sec-title"><h2>Döviz kurları</h2><span class="hint">ay bazında · boş ay öncekini devralır</span></div>
       <div class="card">
         <div class="trow head"><span>Ay</span><span>€ Euro / TL</span><span>$ Dolar / TL</span></div>
@@ -103,6 +106,8 @@
       d.open = !!App.fold[d.dataset.fold];
       d.addEventListener("toggle", () => { App.fold[d.dataset.fold] = d.open; });
     });
+    const syncEl = $("#syncCard", el);
+    if (syncEl && I.Sync) { syncEl.innerHTML = I.Sync.html(); I.Sync.bind(syncEl); }
     $$("input[data-rate]", el).forEach(inp => {
       inp.addEventListener("keydown", e => { if (e.key === "Enter") e.target.blur(); });
       inp.addEventListener("change", e => {
