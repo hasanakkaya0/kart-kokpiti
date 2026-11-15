@@ -46,7 +46,9 @@ css/style.css       design system (light/dark theme, responsive)
 js/core.js          calculation core — UI-independent, unit-tested (window.KT)
 js/app.js           shell: persistence, navigation, modals, shared helpers (App.I), icons, actions, keyboard, startup
 js/ozet.js          Overview screen
-js/kartlar.js       Cards, card detail, payment / statement / period / pending / installment dialogs, payoff plan, cash distribution
+js/kartlar-cards.js     Card tiles, card detail, add/edit/delete card
+js/kartlar-forms.js     Payment / statement / period / pending / installment dialogs
+js/kartlar-planning.js  Payoff plan, cash distribution
 js/ayarlar.js       Settings, exchange-rate fetching, shared-limit groups
 js/shared.js        Shared expenses
 js/io.js            import / export (Excel, JSON, legacy data), sample data
