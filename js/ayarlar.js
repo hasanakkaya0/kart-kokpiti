@@ -23,7 +23,7 @@
     const rateRows = months.map(m => {
       const own = DB.rates[m] || {};
       return `<div class="trow"><span><b>${K.monthLabel(m)}</b>${m === nowYM ? ' <span class="pill">bu ay</span>' : ""}</span>
-        ${["EUR", "USD"].map(c => `<input type="text" inputmode="decimal" data-rate="${m}|${c}" value="${own[c] ? String(own[c]).replace(".", ",") : ""}" placeholder="${K.rateFor(DB, m, c) ? "↳ " + String(K.rateFor(DB, m, c)).replace(".", ",") : "—"}">`).join("")}</div>`;
+        ${["EUR", "USD"].map(c => `<input type="text" inputmode="decimal" data-rate="${m}|${c}" value="${own[c] ? String(own[c]).replace(".", ",") : ""}" placeholder="${K.rateFor(DB, m, c) ? String(K.rateFor(DB, m, c)).replace(".", ",") : "—"}">`).join("")}</div>`;
     }).join("");
     const cardsMin = activeCards().map(c => { const mi = K.minRateInfo(DB, c); return `<div class="kv-line"><span>${esc(c.name)} <span class="faint" style="font-size:12.5px">${esc(mi.why)}</span></span><span class="num">%${Math.round(mi.rate * 100)}</span></div>`; }).join("");
     const groups = DB.groups.map(g => { const cs = DB.cards.filter(c => c.groupId === g.id); return `<div class="kv-line"><span><b>${esc(g.name)}</b><br><span class="faint" style="font-size:12.5px">${cs.map(c => esc(c.name)).join(", ") || "kart yok"}</span></span><span class="num">${g.limit ? K.fmt(g.limit, "TRY", { noDec: true }) : "limit yok"} <button class="iconbtn sm" data-act="editGroup" data-id="${g.id}">${ic("edit")}</button></span></div>`; }).join("");
