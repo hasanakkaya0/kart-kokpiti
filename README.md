@@ -3,9 +3,11 @@
 # Kart Kokpiti ("Card Cockpit")
 
 A credit card dashboard that tracks balances, statements, payments, installments and shared expenses in one place.
-It runs **entirely in the browser**: no server, no account, no build step. Your data is stored only in your own browser (`localStorage`) and is never sent anywhere.
+It runs **entirely in the browser**: no server, no build step. Data is stored locally (`localStorage`); if sync is configured it is also
+mirrored to the owner's private Firestore project for cross-device access — nobody else's data mixes in, and nobody else can sign in.
 
-**Live app:** https://hasanakkaya0.github.io/kart-kokpiti/
+**Live app:** https://hasanakkaya0.github.io/kart-kokpiti/ — this is the author's personal, single-user instance: sync is configured and
+login is required, so a visitor can look at the source but can't actually use the hosted page without the owner's account.
 
 > **Language & market:** The interface is in Turkish and the money rules follow Turkish banking practice (TRY / EUR / USD accounts, central-bank interest-rate tiers, KKDF/BSMV taxes).
 > The calculation core is language-neutral and covered by unit tests.
@@ -28,6 +30,7 @@ It runs **entirely in the browser**: no server, no account, no build step. Your 
 - **When money is short:** "Distribute my cash" (late minimums first, then due-soon minimums, then the highest-interest debt) and a **debt payoff plan** with end month, total interest and month-by-month table.
 - **Shared expenses ledger:** multiple people, trip groups, per-currency balances, flexible splits (half / mine / theirs / custom / percentage), partial settlements, WhatsApp/CSV summaries.
 - **Import / export:** JSON backup and restore, Excel export, import from the original spreadsheet.
+- **Optional cross-device sync:** when configured, signing in mirrors data to a private Firestore project in real time — no setup for a visitor, since login is restricted to the owner's own account.
 - **Keyboard-first:** single-key shortcuts for the common actions; works on desktop and phone; light and dark themes.
 
 ## Using it
@@ -35,7 +38,8 @@ It runs **entirely in the browser**: no server, no account, no build step. Your 
 1. Open the live app (or `index.html` locally in Chrome / Edge). Use **Settings → Load sample data** (*Ayarlar → Örnek veri yükle*) to explore with fictional data.
 2. Add your cards and set each card's **statement day** and **due day**.
 3. Enter the latest statement of each card ("Statement received"), then record payments as you make them.
-4. Back up regularly with **Settings → Download backup (JSON)** (*Ayarlar → Yedek indir*) — data lives only in your browser, so clearing site data erases it.
+4. Back up regularly with **Settings → Download backup (JSON)** (*Ayarlar → Yedek indir*) — without sync configured, data lives only in
+   your browser and clearing site data erases it; a backup file is also a portable copy either way.
 
 ## Project structure
 
@@ -91,6 +95,5 @@ There is no build step: edit the files and reload. When changing assets, bump th
 
 ## Roadmap
 
-- Cross-device sync with end-to-end encryption
 - Installable PWA with offline support and due-date reminders
 - Spending categories and monthly budget analysis

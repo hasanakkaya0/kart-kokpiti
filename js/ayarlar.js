@@ -41,7 +41,7 @@
           <button class="btn ghost" data-act="exportXLSX">${ic("chart")} Excel'e aktar</button>
           <button class="btn ghost" data-act="importExcel">${ic("import")} Eski Excel'den aktar</button>
         </div>
-        <div class="note" style="margin-top:var(--s3)">Veriler yalnızca bu tarayıcıda saklanır, hiçbir sunucuya gitmez. Telefon ve bilgisayar arasında taşımak için yedek dosyasını indirip diğer cihazda yükle.</div>
+        <div class="note" style="margin-top:var(--s3)">${window.KK_FIREBASE ? "Veriler bu tarayıcıda saklanır ve aşağıdaki Senkron hesabına yedeklenir. Yedek dosyası ayrıca taşınabilir ya da arşivlenebilir bir kopya." : "Veriler yalnızca bu tarayıcıda saklanır, hiçbir sunucuya gitmez. Telefon ve bilgisayar arasında taşımak için yedek dosyasını indirip diğer cihazda yükle."}</div>
       </div>
 
       <div class="sec-title"><h2>Senkron</h2><span class="hint">giriş yapınca otomatik, iki yönlü</span></div>

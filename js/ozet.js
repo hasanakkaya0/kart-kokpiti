@@ -16,7 +16,7 @@
       <div style="font-size:40px">💳</div>
       <h2 style="font-size:24px;margin:var(--s3) 0 var(--s2)">Kart Kokpiti'ne hoş geldin</h2>
       <p class="muted" style="max-width:520px;margin:0 auto;line-height:1.65">Kredi kartlarını tek yerden takip et: ekstreler, ödemeler, asgari tutarlar,
-      TL / Euro / Dolar hesapları ve ortak harcamalar. Veriler yalnızca bu tarayıcıda durur.</p>
+      TL / Euro / Dolar hesapları ve ortak harcamalar. ${window.KK_FIREBASE ? "Veriler Firestore'a senkronize edilir, cihazlar arası görünür." : "Veriler yalnızca bu tarayıcıda durur."}</p>
       <div class="btnrow" style="justify-content:center;margin-top:var(--s5)">
         <button class="btn" data-act="addCard">+ İlk kartını ekle</button>
         <button class="btn ghost" data-act="importExcel">${ic("chart")} Eski Excel'imi aktar</button>
@@ -98,7 +98,7 @@
     const unset = activeCards().filter(c => c.daysUnset);
     if (unset.length) alerts.push(`<div class="alert info"><span class="ic">${ic("calendar")}</span><div class="grow"><b>${unset.map(c => esc(c.name)).join(", ")}</b> için kesim / son ödeme günü varsayılan değerde. Doğru girersen tarihler ve gecikme uyarıları doğru çalışır.</div><button data-act="editCard" data-card="${unset[0].id}">Düzelt</button></div>`);
     const lb = DB.meta.lastBackup ? K.parseISO(DB.meta.lastBackup) : null;
-    if (DB.statements.length && (!lb || K.dayDiff(lb, t) > 30)) alerts.push(`<div class="alert info"><span class="ic">${ic("save")}</span><div class="grow">${lb ? "Son yedeğin " + K.dayDiff(lb, t) + " gün önce." : "Henüz yedek almadın."} Veriler sadece bu tarayıcıda — tarayıcı verisi silinirse kaybolur.</div><button data-act="exportJSON">Yedek indir</button></div>`);
+    if (!window.KK_FIREBASE && DB.statements.length && (!lb || K.dayDiff(lb, t) > 30)) alerts.push(`<div class="alert info"><span class="ic">${ic("save")}</span><div class="grow">${lb ? "Son yedeğin " + K.dayDiff(lb, t) + " gün önce." : "Henüz yedek almadın."} Veriler sadece bu tarayıcıda — tarayıcı verisi silinirse kaybolur.</div><button data-act="exportJSON">Yedek indir</button></div>`);
 
     /* sağ istatistikler + gelecek aylar */
     const F = K.forecast(DB, 12, t);
