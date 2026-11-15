@@ -57,7 +57,7 @@
     if (!p) {
       el.innerHTML = `<div class="card" data-enter="shAddFirst" style="max-width:560px;margin:0 auto;text-align:center;padding:36px 24px">
         <div style="font-size:36px">⇄</div>
-        <h2 style="font-size:21px;margin:10px 0 6px">Ortak harcamalar</h2>
+        <h2 style="font-size:21px;margin:var(--s3) 0 var(--s2)">Ortak harcamalar</h2>
         <p class="muted" style="line-height:1.6">Biriyle bölüştüğün harcamaları gir — kimin kime ne kadar borçlu olduğunu ₺, € ve $ ayrı ayrı takip et, gezileri grupla, özeti tek tuşla paylaş.</p>
         <label class="lbl" style="text-align:left">Kiminle?</label>
         <input type="text" id="shFirst" placeholder="ör. Ayşe" autofocus>
@@ -147,10 +147,10 @@
           <div><small>${esc(p.name)}'in payı</small><b>${moneyMultiHtml(sm.theirs)}</b></div>
           <div><small>Kim ödedi</small><b style="font-size:13px">Sen ${moneyMultiHtml(sm.paidMe)}${K.CCYS.some(c => sm.paidThem[c]) ? "<br>" + esc(p.name) + " " + moneyMultiHtml(sm.paidThem) : ""}</b></div>
         </div>
-        ${cats.length ? `<div style="margin-top:14px">${cats.slice(0, 8).map(([k, v]) => `<div class="catbar"><span>${esc(k)}</span><div class="progress"><i style="width:${Math.round(100 * v / maxCat)}%"></i></div><span>${K.fmt(v, "TRY", { noDec: true })}</span></div>`).join("")}</div>` : ""}
+        ${cats.length ? `<div style="margin-top:var(--s3)">${cats.slice(0, 8).map(([k, v]) => `<div class="catbar"><span>${esc(k)}</span><div class="progress"><i style="width:${Math.round(100 * v / maxCat)}%"></i></div><span>${K.fmt(v, "TRY", { noDec: true })}</span></div>`).join("")}</div>` : ""}
       </div>
-      <div class="card" style="padding-top:6px">
-        <div class="list">${listHtml || `<div class="empty">Henüz harcama yok.<br><button class="btn sm soft" style="margin-top:12px" data-act="shAdd">+ İlk harcamayı ekle</button></div>`}</div>
+      <div class="card" style="padding-top:var(--s2)">
+        <div class="list">${listHtml || `<div class="empty">Henüz harcama yok.<br><button class="btn sm soft" style="margin-top:var(--s3)" data-act="shAdd">+ İlk harcamayı ekle</button></div>`}</div>
       </div>`;
   };
 
@@ -174,7 +174,7 @@
         <input type="text" id="hAmt" class="big" inputmode="decimal" value="${e ? String(e.amount).replace(".", ",") : ""}" placeholder="0,00" autofocus>
         ${App.segHtml("hCcy", [["TRY", "₺"], ["EUR", "€"], ["USD", "$"]], ccy)}
       </div>
-      <div class="note" style="margin-top:2px">İade için eksi tutar gir (ör. -14).</div>
+      <div class="note" style="margin-top:var(--s1)">İade için eksi tutar gir (ör. -14).</div>
       <label class="lbl">Nerede / ne için</label>
       <input type="text" id="hPlace" value="${e ? esc(e.place || "") : ""}" placeholder="ör. Paradise Beach" list="hPlaces">
       <datalist id="hPlaces">${[...new Set(S.entries.map(x => x.place).filter(Boolean))].slice(-80).map(x => `<option value="${esc(x)}">`).join("")}</datalist>
@@ -184,19 +184,19 @@
         <div><label class="lbl">Tarih</label><input type="date" id="hDate" value="${e ? e.d : (L.d || K.isoDate(App.today()))}"></div>
         <div><label class="lbl">Gezi <span class="opt">(opsiyonel)</span></label><select id="hTrip"><option value="">— Yok —</option>${S.trips.filter(t => !t.archived || t.id === tripSel).map(t => `<option value="${t.id}" ${t.id === tripSel ? "selected" : ""}>${ic("plane")} ${esc(t.name)}</option>`).join("")}<option value="__new">+ Yeni gezi…</option></select></div>
       </div>
-      <input type="text" id="hNewTrip" class="hidden" style="margin-top:8px" placeholder="Yeni gezi adı, ör. Kos Temmuz">
+      <input type="text" id="hNewTrip" class="hidden" style="margin-top:var(--s2)" placeholder="Yeni gezi adı, ör. Kos Temmuz">
       <label class="lbl">Kim ödedi?</label>
       ${App.segHtml("hPaid", [["me", "Ben"], ["them", esc(p.name)]], paidBy)}
       <div id="hCardBox"><label class="lbl">Hangi kartla <span class="opt">(opsiyonel)</span></label><select id="hCard"><option value="">— Nakit / belirtme —</option>${App.activeCards().map(c => `<option value="${c.id}" ${(e ? e.cardId : L.cardId) === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select></div>
       <label class="lbl">Nasıl bölünsün?</label>
       ${App.segHtml("hSplit", [["half", "Yarı yarıya"], ["me", "Hepsi benim"], ["them", "Hepsi " + esc(p.name)], ["custom", "Özel"]], sp.mode === "pct" ? "custom" : sp.mode)}
-      <div id="hCustom" class="hidden" style="margin-top:10px">
+      <div id="hCustom" class="hidden" style="margin-top:var(--s3)">
         <div style="display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center">
           ${App.segHtml("hCMode", [["amt", "Benim payım tutar"], ["pct", "Benim payım %"]], sp.mode === "pct" ? "pct" : "amt")}
           <input type="text" id="hCVal" inputmode="decimal" value="${sp.mode === "custom" ? String(sp.mine).replace(".", ",") : sp.mode === "pct" ? sp.pct : ""}" placeholder="ör. 12">
         </div>
       </div>
-      <div id="hPreview" class="note box" style="margin-top:10px"></div>
+      <div id="hPreview" class="note box" style="margin-top:var(--s3)"></div>
       <details class="adv" ${e && (e.city || e.note) ? "open" : ""}><summary>Şehir, not</summary>
         <div class="row2"><div><label class="lbl">Şehir</label><input type="text" id="hCity" value="${e ? esc(e.city || "") : (L.city || "")}" placeholder="ör. Kos"></div>
         <div><label class="lbl">Not</label><input type="text" id="hNote" value="${e ? esc(e.note || "") : ""}"></div></div>
@@ -276,8 +276,8 @@
     const balList = K.CCYS.filter(c => Math.abs(bal[c]) > K.EPS).map(c => `<div class="kv-line"><span>${K.CCY_NAME[c]}</span><span class="num ${bal[c] > 0 ? "ok" : "info"}">${bal[c] > 0 ? esc(p.name) + " → sen " : "sen → " + esc(p.name) + " "}${K.fmt(Math.abs(bal[c]), c)}</span></div>`).join("");
     App.modal(`
       ${App.mh(s0 ? "Hesaplaşmayı düzenle" : "Hesaplaş · " + esc(p.name))}
-      ${!s0 ? `<div class="card flat" style="padding:6px 14px;margin:8px 0 4px">${balList || '<div class="empty" style="padding:12px">Açık borç yok</div>'}</div>
-        ${balList ? `<button class="btn soft block" id="stAll" style="margin-top:8px">Tümünü kapat (her para birimi için ayrı kayıt)</button><div class="note" style="text-align:center;margin:12px 0 0">— ya da kısmi ödeme gir —</div>` : ""}` : ""}
+      ${!s0 ? `<div class="card flat" style="padding:6px 14px;margin:var(--s2) 0 var(--s1)">${balList || '<div class="empty" style="padding:12px">Açık borç yok</div>'}</div>
+        ${balList ? `<button class="btn soft block" id="stAll" style="margin-top:var(--s2)">Tümünü kapat (her para birimi için ayrı kayıt)</button><div class="note" style="text-align:center;margin:var(--s3) 0 0">— ya da kısmi ödeme gir —</div>` : ""}` : ""}
       <label class="lbl">Kim kime ödedi?</label>
       ${App.segHtml("stDir", [["in", esc(p.name) + " bana ödedi"], ["out", "Ben " + esc(p.name) + "'e ödedim"]], dir0)}
       <label class="lbl">Hangi borç için?</label>
@@ -285,7 +285,7 @@
       <label class="lbl">Tutar</label>
       <input type="text" id="stAmt" class="big" inputmode="decimal" value="${s0 ? String(s0.amount).replace(".", ",") : (Math.abs(bal[firstCcy]) > K.EPS ? String(Math.abs(bal[firstCcy])).replace(".", ",") : "")}">
       <div id="stFx" class="hidden">
-        <label class="check" style="margin-top:12px"><input type="checkbox" id="stAsTL" ${s0 && s0.paidAs ? "checked" : ""}> TL olarak ödendi</label>
+        <label class="check" style="margin-top:var(--s3)"><input type="checkbox" id="stAsTL" ${s0 && s0.paidAs ? "checked" : ""}> TL olarak ödendi</label>
         <div id="stFxBox" class="row2 hidden"><div><label class="lbl">Kullanılan kur</label><input type="text" id="stRate" inputmode="decimal" value="${s0 && s0.paidAs ? String(s0.paidAs.rate).replace(".", ",") : String(K.rateFor(DB, ym, firstCcy === "TRY" ? "EUR" : firstCcy) || "").replace(".", ",")}"></div><div><label class="lbl">Ödenen TL</label><input type="text" id="stTL" readonly></div></div>
       </div>
       <div class="row2"><div><label class="lbl">Tarih</label><input type="date" id="stDate" value="${s0 ? s0.d : K.isoDate(App.today())}"></div><div><label class="lbl">Not</label><input type="text" id="stNote" value="${s0 ? esc(s0.note || "") : ""}" placeholder="ör. IBAN"></div></div>
@@ -400,9 +400,9 @@
     App.modal(`
       ${App.mh(t ? "Geziyi düzenle" : "Yeni gezi", "Gezi = harcamaları gruplamak için etiket (tatil, ev alışverişi, doğum günü…).")}
       <label class="lbl">Ad</label><input type="text" id="tName" value="${t ? esc(t.name) : ""}" placeholder="ör. Kos Temmuz" autofocus>
-      ${t ? `<label class="check" style="margin-top:14px"><input type="checkbox" id="tArch" ${t.archived ? "checked" : ""}> Arşivle (yeni harcamalarda listelenmez)</label>` : ""}
+      ${t ? `<label class="check" style="margin-top:var(--s3)"><input type="checkbox" id="tArch" ${t.archived ? "checked" : ""}> Arşivle (yeni harcamalarda listelenmez)</label>` : ""}
       <div class="btnrow"><button class="btn" id="tSave">Kaydet</button>${t ? `<button class="btn danger" id="tDel">Geziyi sil</button>` : ""}<button class="btn ghost" data-close>Vazgeç</button></div>
-      ${t && n ? `<div class="note" style="margin-top:8px">Silersen ${n} harcama silinmez, sadece "gezisiz" olur.</div>` : ""}`);
+      ${t && n ? `<div class="note" style="margin-top:var(--s2)">Silersen ${n} harcama silinmez, sadece "gezisiz" olur.</div>` : ""}`);
     $("#tSave").onclick = () => {
       const nm = val("tName").trim(); if (!nm) return App.toast("Ad gir");
       if (t) { t.name = nm; t.archived = !!($("#tArch") && $("#tArch").checked); }

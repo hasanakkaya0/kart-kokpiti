@@ -37,7 +37,7 @@
       <div class="body">
         ${debtLines}
         <div class="kv"><span>Son ödeme</span><b class="${cur && cur.status === "late" ? "bad" : cur && chipClass(cur) === "soon" ? "warn" : ""}">${cur ? K.fmtDate(cur.due) + (cur.status === "late" ? " · gecikmede" : cur.daysToDue >= 0 ? " · " + (cur.daysToDue === 0 ? "bugün" : cur.daysToDue + " gün") : "") : "—"}</b></div>
-        <div class="kv"><span>Dönem içi</span><b>${periodLine || "—"} <button class="linkbtn" style="font-size:12px;margin-left:4px" data-act="periodOne" data-card="${c.id}">${periodLine ? "güncelle" : "ekle"}</button></b></div>${provNote}
+        <div class="kv"><span>Dönem içi</span><b>${periodLine || "—"} <button class="linkbtn" style="font-size:12px;margin-left:var(--s1)" data-act="periodOne" data-card="${c.id}">${periodLine ? "güncelle" : "ekle"}</button></b></div>${provNote}
         ${lim && LU ? `<div class="kv"><span>${grp ? "Kullanılabilir (ortak)" : "Kullanılabilir limit"}</span><b class="${LU.avail < 0 ? "bad" : ""}">${moneyHtml(LU.avail)}</b></div>
           <div class="progress ${limCls}" title="%${limPct} dolu"><i style="width:${limPct}%"></i></div>` : ""}
         ${flags[0] || ""}
@@ -60,7 +60,7 @@
         <div class="r"><div class="amt" style="font-size:16px">${K.fmt(x.per, x.ccy)}<small>/ay</small></div><div class="m">kalan ${K.fmt(left, x.ccy)}</div></div></div>`;
     }).join("");
     el.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:var(--s4)">
         <div><h2 style="font-size:22px">Kartlarım</h2><div class="muted" style="font-size:14px">${act.length} aktif kart${arch.length ? " · " + arch.length + " arşivde" : ""}</div></div>
         <div class="btnrow" style="margin:0"><button class="btn ghost" data-act="periodUpdate">${ic("cart")} Dönem içi harcamalar</button><button class="btn ghost" data-act="batchStatement">${ic("layers")} Toplu ekstre gir</button><button class="btn" data-act="addCard">+ Kart ekle</button></div>
       </div>
@@ -68,8 +68,8 @@
         ${act.map(cardTile).join("")}
         <div class="ccard add" data-act="addCard"><span class="plus">+</span>Yeni kart</div>
       </div>
-      ${arch.length ? `<div style="margin-top:16px"><button class="btn sm ghost" data-act="toggleArchived">${App.showArchived ? "Arşivi gizle" : "Arşivdeki kartları göster (" + arch.length + ")"}</button></div>
-        ${App.showArchived ? `<div class="cardgrid" style="margin-top:12px">${arch.map(cardTile).join("")}</div>` : ""}` : ""}
+      ${arch.length ? `<div style="margin-top:var(--s4)"><button class="btn sm ghost" data-act="toggleArchived">${App.showArchived ? "Arşivi gizle" : "Arşivdeki kartları göster (" + arch.length + ")"}</button></div>
+        ${App.showArchived ? `<div class="cardgrid" style="margin-top:var(--s3)">${arch.map(cardTile).join("")}</div>` : ""}` : ""}
       <div class="sec-title" id="instSec"><h2>Taksitler</h2><button class="btn sm soft" data-act="newInst">+ Taksit ekle</button></div>
       ${instHtml ? `<div class="card"><div class="list">${instHtml}</div></div>` : `<div class="faint" style="font-size:13px">Taksitli alışverişlerini ekle — gelecek ayların yükünde görünsün.</div>`}
     `;
@@ -129,7 +129,7 @@
     const L = K.ledger(App.DB, c.id, ccy, App.today());
     const startDebt = K.round2(L.debt - L.credit);
     const startLabel = L.current ? K.monthLabel(L.current.month, true) : "Şu an";
-    return `<div class="sec-title" style="margin-top:4px"><h2>Gelecek ekstreler</h2><span class="hint">henüz kesilmedi · tıklayıp güncelle</span></div><div class="card flat" style="padding:8px 14px;margin-bottom:6px">${upcomingTable(rows, ccy, null, { card: c.id, startDebt, startLabel })}</div>`;
+    return `<div class="sec-title" style="margin-top:var(--s1)"><h2>Gelecek ekstreler</h2><span class="hint">henüz kesilmedi · tıklayıp güncelle</span></div><div class="card flat" style="padding:8px 14px;margin-bottom:var(--s2)">${upcomingTable(rows, ccy, null, { card: c.id, startDebt, startLabel })}</div>`;
   }
 
   /* ---------- kart detayı: devir zinciri ---------- */
@@ -161,7 +161,7 @@
       else if (r.status === "closed" || r.status === "paid") out = r.convOut > K.EPS ? `<div class="out info">Kalan ${K.fmt(r.convOut, ccy)} TL'ye çevrilip TL hesabına aktarıldı</div>` : `<div class="out ok">Tamamı ödendi ✓</div>`;
       else if (r.isCut) out = `<div class="out">Ödenen ${K.fmt(r.paid, ccy)}${r.refund > K.EPS ? ` · iade ${K.fmt(r.refund, ccy)}` : ""}${r.convIn > K.EPS ? ` · dövizden gelen +${K.fmt(r.convIn, ccy)}` : ""} · <span class="${r.status === "late" ? "bad" : ""}">Kalan ${K.fmt(r.rem, ccy)}</span>${r.minGap > K.EPS ? ` · asgari eksik ${K.fmt(r.minGap, ccy)}` : ""}</div>`;
       if (r.restruct > K.EPS) out = r.restructs.map(x => `<div class="out info">Taksitlendirildi: ${K.fmt(x.principal, ccy)} → ${K.monthLabel(x.start)}'dan itibaren ${x.count} × ${K.fmt(x.per, ccy)} (faiz ${K.fmt(x.per * x.count - x.principal, ccy)}) <button class="linkbtn" data-act="editInst" data-id="${x.id}">düzenle</button></div>`).join("") + (r.rem > K.EPS ? out : "");
-      if (r.current && r.rem > K.EPS && !r.restruct) out += `<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm ghost" data-act="stmtInst" data-card="${c.id}" data-ccy="${ccy}">${ic("puzzle")} Bu ekstreyi taksitlendirdim</button>${ccy !== "TRY" && K.accountsOf(c).includes("TRY") ? `<button class="btn sm ghost" data-act="convertFx" data-card="${c.id}" data-ccy="${ccy}">₺ TL'ye çevrildi</button>` : ""}</div>`;
+      if (r.current && r.rem > K.EPS && !r.restruct) out += `<div style="margin-top:var(--s2);display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm ghost" data-act="stmtInst" data-card="${c.id}" data-ccy="${ccy}">${ic("puzzle")} Bu ekstreyi taksitlendirdim</button>${ccy !== "TRY" && K.accountsOf(c).includes("TRY") ? `<button class="btn sm ghost" data-act="convertFx" data-card="${c.id}" data-ccy="${ccy}">₺ TL'ye çevrildi</button>` : ""}</div>`;
       return `<div class="tl ${r.current ? "current" : ""} ${r.status === "late" ? "late" : ""} ${r.isCut ? "" : "future"}">
         <span class="dot"></span>
         <div class="box">
@@ -172,8 +172,8 @@
         </div>
       </div>`;
     }).join("");
-    const orphan = L.orphan.length ? `<div class="note box" style="margin-top:10px">İlk ekstreden önce tarihlenmiş ${L.orphan.length} ödeme var (${L.orphan.map(p => K.fmtDate(p.d) + " " + K.fmt(p.a, ccy)).join(", ")}). Bunlar borçtan düşülmedi — ilgili ekstreyi eklersen otomatik eşleşir.
-      ${L.orphan.map(p => `<button class="btn sm ghost" style="margin:6px 6px 0 0" data-act="delPayment" data-id="${p.id}">${K.fmtDate(p.d)} ödemesini sil</button>`).join("")}</div>` : "";
+    const orphan = L.orphan.length ? `<div class="note box" style="margin-top:var(--s3)">İlk ekstreden önce tarihlenmiş ${L.orphan.length} ödeme var (${L.orphan.map(p => K.fmtDate(p.d) + " " + K.fmt(p.a, ccy)).join(", ")}). Bunlar borçtan düşülmedi — ilgili ekstreyi eklersen otomatik eşleşir.
+      ${L.orphan.map(p => `<button class="btn sm ghost" style="margin:var(--s2) var(--s2) 0 0" data-act="delPayment" data-id="${p.id}">${K.fmtDate(p.d)} ödemesini sil</button>`).join("")}</div>` : "";
     const insts = DB.installments.filter(x => x.cardId === c.id && x.ccy === ccy);
     const nUp = upcomingRows(c.id, ccy).length, nPend = K.cardPending(DB, c.id).items.length;
     App.modal(`
@@ -203,15 +203,15 @@
           ? `<div class="alert warn"><span class="ic">${ic("fire")}</span><div class="grow"><b>Bu hesapta faiz işliyor</b> — son ödemede kalan ${K.fmt(A.unpaidAtDue, ccy)} için kesim tarihinden (${K.fmtDate(cur.cut)}) itibaren gün gün faiz işler. Bugüne kadar <b>${K.fmt(A.sofar, ccy)}</b>; ${K.fmtDate(A.nextCut)} kesimine kadar ödemezsen ≈ <b>${K.fmt(A.full, ccy)}</b> ${K.MONTHS[A.nextCut.getMonth()]} ekstresine gelir. Bu kartla yeni harcama yapma.</div></div>`
           : `<div class="alert info"><span class="ic">${ic("soon")}</span><div class="grow"><b>${A.lateDays} gün geç kapandı</b> — son ödemede kalan ${K.fmt(A.unpaidAtDue, ccy)} için kesim tarihinden ödediğin güne kadar ≈ <b>${K.fmt(A.full, ccy)}</b> faiz (vergili) işledi; ${K.MONTHS[A.nextCut.getMonth()]} ekstresine gelecek. Kesin rakamı o ekstreyi girerken "faiz" kutusuna yazabilirsin.</div></div>`; })()}
       ${accs.length > 1 ? `<div class="seg ccytabs">${accs.map(a => `<button data-act="cardDetail" data-card="${c.id}" data-ccy="${a}" class="${a === ccy ? "on" : ""}">${a === "TRY" ? "TL hesabı" : a + " hesabı"}</button>`).join("")}</div>` : ""}
-      <div class="btnrow" style="margin-top:0;margin-bottom:16px">
+      <div class="btnrow" style="margin-top:0;margin-bottom:var(--s4)">
         <button class="btn" data-act="pay" data-card="${c.id}" data-ccy="${ccy}">${ic("card")} Ödeme ekle</button>
         <button class="btn ghost" data-act="newStatement" data-card="${c.id}" data-ccy="${ccy}">${ic("receipt")} Ekstre ekle</button>
         <button class="btn ghost" data-act="periodOne" data-card="${c.id}" data-ccy="${ccy}">${ic("cart")} Dönem içi harcama</button>
         <button class="btn ghost" data-act="pendNew" data-card="${c.id}">${ic("hourglass")} Bekleyen</button>
         <button class="btn ghost" data-act="newInst" data-card="${c.id}" data-ccy="${ccy}">+ Taksit</button>
       </div>
-      <div class="note" style="margin-bottom:10px">Ekstre her ay <b>${c.cutDay}. gün</b> kesilir, son ödeme <b>${c.dueDay}. gün</b>.</div>
-      <details class="tip" style="margin-bottom:14px"><summary>ⓘ Kesilen ve kesilmemiş ekstre nedir?</summary><div class="note box"><b>Kesilen ekstre</b> = bankanın kesinleştirdiği borç: son ödeme tarihi ve asgarisi var, ödemelerin buraya yazılır. <b>Henüz kesilmemiş</b> = harcamaya devam ettiğin dönem; bankada gördüğün tutarı (dönem içi) ya da taksitleri yazarsın, kesilince bankadaki gerçek tutarı girersin.</div></details>
+      <div class="note" style="margin-bottom:var(--s3)">Ekstre her ay <b>${c.cutDay}. gün</b> kesilir, son ödeme <b>${c.dueDay}. gün</b>.</div>
+      <details class="tip" style="margin-bottom:var(--s3)"><summary>ⓘ Kesilen ve kesilmemiş ekstre nedir?</summary><div class="note box"><b>Kesilen ekstre</b> = bankanın kesinleştirdiği borç: son ödeme tarihi ve asgarisi var, ödemelerin buraya yazılır. <b>Henüz kesilmemiş</b> = harcamaya devam ettiğin dönem; bankada gördüğün tutarı (dönem içi) ya da taksitleri yazarsın, kesilince bankadaki gerçek tutarı girersin.</div></details>
       <div class="seg dtabs" role="tablist">
         <button type="button" data-dtab-btn="gelecek">Gelecek${nUp + nPend ? " <span class=\"cnt\">" + (nUp + nPend) + "</span>" : ""}</button>
         <button type="button" data-dtab-btn="ekstre">Ekstreler${rows.length ? " <span class=\"cnt\">" + rows.length + "</span>" : ""}</button>
@@ -222,12 +222,12 @@
         ${upcomingHtml(c, ccy) || `<div class="empty">Henüz kesilmemiş harcama, taksit ya da bekleyen yok.</div>`}
       </div>
       <div class="dtab" data-dtab="ekstre">
-        <div class="sec-title" style="margin-top:6px"><h2>Kesilen ekstreler</h2><span class="hint">gerçek borç · ödemeler</span></div>
+        <div class="sec-title" style="margin-top:var(--s2)"><h2>Kesilen ekstreler</h2><span class="hint">gerçek borç · ödemeler</span></div>
         <div class="timeline">${tl || `<div class="empty">Bu hesap için ekstre yok. "Ekstre ekle" ile başla.</div>`}</div>
         ${orphan}
       </div>
       ${insts.length ? `<div class="dtab" data-dtab="taksit">
-        <div class="sec-title" style="margin-top:6px"><h2>Bu hesabın taksitleri</h2></div>${insts.map(x => `<div class="kv-line"><span>${x.kind === "stmt" ? ic("puzzle") + " " : ""}${esc(x.desc)} · ${x.count} ay · ${K.monthLabel(x.start, true)}'dan</span><span class="num">${K.fmt(x.per, x.ccy)}/ay <button class="iconbtn sm" data-act="editInst" data-id="${x.id}">${ic("edit")}</button></span></div>`).join("")}
+        <div class="sec-title" style="margin-top:var(--s2)"><h2>Bu hesabın taksitleri</h2></div>${insts.map(x => `<div class="kv-line"><span>${x.kind === "stmt" ? ic("puzzle") + " " : ""}${esc(x.desc)} · ${x.count} ay · ${K.monthLabel(x.start, true)}'dan</span><span class="num">${K.fmt(x.per, x.ccy)}/ay <button class="iconbtn sm" data-act="editInst" data-id="${x.id}">${ic("edit")}</button></span></div>`).join("")}
       </div>` : ""}
     `, { wide: true });
     /* sekmeler: son seçilen hatırlanır; gelecek boşsa ekstrelere düşer */
@@ -262,7 +262,7 @@
       <div class="swatches" id="cColors">${COLORS.map(x => `<button type="button" data-c="${x}" style="background:${x}" class="${x === color ? "on" : ""}"></button>`).join("")}<input type="color" id="cColorCustom" value="${color}" style="width:36px;height:32px;border:0;background:transparent;padding:0" title="Özel renk"></div>
       <label class="lbl">Hesaplar (para birimleri)</label>
       <div class="chips" id="cCcys">${K.CCYS.map(x => `<button type="button" data-v="${x}" class="${ccys.includes(x) ? "on" : ""}">${x === "TRY" ? "₺ TL" : x === "EUR" ? "€ Euro" : "$ Dolar"}</button>`).join("")}</div>
-      <div class="note" style="margin-top:6px">Kartın döviz hesabı varsa (bankadan ayrı döviz ekstresi geliyorsa) Euro / Dolar'ı da seç.</div>
+      <div class="note" style="margin-top:var(--s2)">Kartın döviz hesabı varsa (bankadan ayrı döviz ekstresi geliyorsa) Euro / Dolar'ı da seç.</div>
       <div class="row2">
         <div><label class="lbl">Kart limiti (₺)</label><input type="text" id="cLimit" inputmode="decimal" value="${c && c.limit ? c.limit : ""}" placeholder="ör. 75000"></div>
         <div><label class="lbl">Ortak limit grubu <span class="opt">(opsiyonel)</span></label>
@@ -273,16 +273,16 @@
         <div><label class="lbl">Hesap kesim günü</label><input type="number" id="cCut" min="1" max="31" value="${c ? c.cutDay : 8}"></div>
         <div><label class="lbl">Son ödeme günü</label><input type="number" id="cDue" min="1" max="31" value="${c ? c.dueDay : 18}"></div>
       </div>
-      <div class="note" id="cDaysHint" style="margin-top:6px"></div>
+      <div class="note" id="cDaysHint" style="margin-top:var(--s2)"></div>
       <label class="lbl">Asgari ödeme oranı</label>
       ${segHtml("cMinMode", [["auto", "Otomatik (limite göre)"], ["manual", "Elle gir"]], c && c.minMode === "manual" ? "manual" : "auto")}
-      <div id="cMinAuto" class="note" style="margin-top:8px"></div>
-      <div id="cMinManual" class="hidden"><input type="number" id="cMinRate" min="1" max="100" value="${c && c.minRate ? c.minRate : 40}" style="margin-top:8px" placeholder="%"></div>
-      <label class="check" style="margin-top:14px"><input type="checkbox" id="cSpend" ${c && c.spendCard ? "checked" : ""}> <span><b>Harcama kartım</b> — günlük harcamaları bu karta topluyorum, her ay tamamını ödüyorum</span></label>
+      <div id="cMinAuto" class="note" style="margin-top:var(--s2)"></div>
+      <div id="cMinManual" class="hidden"><input type="number" id="cMinRate" min="1" max="100" value="${c && c.minRate ? c.minRate : 40}" style="margin-top:var(--s2)" placeholder="%"></div>
+      <label class="check" style="margin-top:var(--s3)"><input type="checkbox" id="cSpend" ${c && c.spendCard ? "checked" : ""}> <span><b>Harcama kartım</b> — günlük harcamaları bu karta topluyorum, her ay tamamını ödüyorum</span></label>
       <details class="adv" ${c && c.rateMode === "manual" ? "open" : ""}><summary>Gelişmiş: faiz oranı, not</summary>
         <label class="lbl">Faiz oranı</label>
         ${segHtml("cRateMode", [["auto", "Otomatik (TCMB kademesi)"], ["manual", "Elle gir"]], c && c.rateMode === "manual" ? "manual" : "auto")}
-        <div id="cRateAuto" class="note" style="margin-top:8px">Her ekstrenin dönem borcuna göre kademe seçilir: ${(DB.settings.rateTiers || []).map((x, i, T) => (i === 0 ? fmtTL0(x.max) + " altı " : x.max == null ? fmtTL0(T[i - 1].max) + " üstü " : fmtTL0(T[i - 1].max) + "–" + fmtTL0(x.max) + " ") + "%" + String(x.akt).replace(".", ",")).join(" · ")} (+ KKDF/BSMV). Kademeler Ayarlar'dan değişir.</div>
+        <div id="cRateAuto" class="note" style="margin-top:var(--s2)">Her ekstrenin dönem borcuna göre kademe seçilir: ${(DB.settings.rateTiers || []).map((x, i, T) => (i === 0 ? fmtTL0(x.max) + " altı " : x.max == null ? fmtTL0(T[i - 1].max) + " üstü " : fmtTL0(T[i - 1].max) + "–" + fmtTL0(x.max) + " ") + "%" + String(x.akt).replace(".", ",")).join(" · ")} (+ KKDF/BSMV). Kademeler Ayarlar'dan değişir.</div>
         <div id="cRateManual" class="row2 hidden">
           <div><label class="lbl">Akdi faiz (aylık %)</label><input type="text" id="cAkt" inputmode="decimal" value="${c && typeof c.aktRate === "number" ? String(c.aktRate).replace(".", ",") : ""}" placeholder="ör. 3,75"></div>
           <div><label class="lbl">Gecikme faizi (aylık %)</label><input type="text" id="cGec" inputmode="decimal" value="${c && typeof c.gecRate === "number" ? String(c.gecRate).replace(".", ",") : ""}" placeholder="boş = akdi + 0,30"></div>
@@ -411,7 +411,7 @@
     App.modal(`
       ${mh("Ödeme ekle")}
       ${segHtml("pKind", [["pay", ic("card") + " Ödeme"], ["refund", ic("undo") + " İade / alacak"]], pre && pre.kind === "refund" ? "refund" : "pay")}
-      <div id="pKindNote" class="note" style="margin-top:6px"></div>
+      <div id="pKindNote" class="note" style="margin-top:var(--s2)"></div>
       <label class="lbl">Kart · hesap</label>
       <select id="pAcc">${accountOptions(sel)}</select>
       <div id="pInfo"></div>
@@ -430,11 +430,11 @@
       $("#pAmt").dataset.ccy = cc;
       const L = K.ledger(DB, cid, cc, App.today());
       const r = L.current;
-      if (!r) { $("#pInfo").innerHTML = `<div class="note box" style="margin-top:10px">Bu hesapta kesilmiş ekstre yok. Ödeme kaydedilir, ekstre eklenince otomatik eşleşir.</div>`; return; }
-      $("#pInfo").innerHTML = `<div class="note box" style="margin-top:10px">
+      if (!r) { $("#pInfo").innerHTML = `<div class="note box" style="margin-top:var(--s3)">Bu hesapta kesilmiş ekstre yok. Ödeme kaydedilir, ekstre eklenince otomatik eşleşir.</div>`; return; }
+      $("#pInfo").innerHTML = `<div class="note box" style="margin-top:var(--s3)">
         <b>${K.monthLabel(r.month)} ekstresi</b> · dönem borcu ${K.fmt(r.amount, cc)} · ödenen ${K.fmt(r.paid, cc)}${r.refund > K.EPS ? ` · iade ${K.fmt(r.refund, cc)}` : ""}<br>
-        Kalan <b>${K.fmt(r.rem, cc)}</b> · asgari eksik <b>${K.fmt(r.minGap, cc)}</b> · son ödeme ${K.fmtDate(r.due)} <span class="chip ${chipClass(r)}" style="margin-left:4px">${esc(r.label)}</span></div>
-        ${r.rem > K.EPS ? `<div class="chips" style="margin-top:10px">${r.minGap > K.EPS ? `<button type="button" data-fill="${r.minGap}">Asgari eksiği · ${K.fmt(r.minGap, cc)}</button>` : ""}<button type="button" data-fill="${r.rem}">Tamamı · ${K.fmt(r.rem, cc)}</button></div>` : ""}`;
+        Kalan <b>${K.fmt(r.rem, cc)}</b> · asgari eksik <b>${K.fmt(r.minGap, cc)}</b> · son ödeme ${K.fmtDate(r.due)} <span class="chip ${chipClass(r)}" style="margin-left:var(--s1)">${esc(r.label)}</span></div>
+        ${r.rem > K.EPS ? `<div class="chips" style="margin-top:var(--s3)">${r.minGap > K.EPS ? `<button type="button" data-fill="${r.minGap}">Asgari eksiği · ${K.fmt(r.minGap, cc)}</button>` : ""}<button type="button" data-fill="${r.rem}">Tamamı · ${K.fmt(r.rem, cc)}</button></div>` : ""}`;
       $$("#pInfo [data-fill]").forEach(b => b.onclick = () => { $("#pAmt").value = String(b.dataset.fill).replace(".", ","); $("#pAmt").dispatchEvent(new Event("input")); });
     };
     const over = () => {
@@ -442,7 +442,7 @@
       const r = K.ledger(DB, cid, cc, App.today()).current;
       const a = K.calc(val("pAmt"));
       const extra = a - (r ? r.rem : 0);
-      $("#pOver").innerHTML = a > 0 && extra > K.EPS ? `<div class="note box" style="margin-top:8px">${K.fmt(r ? r.rem : 0, cc)} ekstreyi kapatır, fazla <b>${K.fmt(extra, cc)}</b> alacak bakiye olur: sonraki ekstrelerden (taksitler dahil) düşer, limitin de o kadar açılır.</div>` : "";
+      $("#pOver").innerHTML = a > 0 && extra > K.EPS ? `<div class="note box" style="margin-top:var(--s2)">${K.fmt(r ? r.rem : 0, cc)} ekstreyi kapatır, fazla <b>${K.fmt(extra, cc)}</b> alacak bakiye olur: sonraki ekstrelerden (taksitler dahil) düşer, limitin de o kadar açılır.</div>` : "";
     };
     $("#pAmt").addEventListener("input", over);
     const kindUpd = () => {
@@ -491,7 +491,7 @@
       <div id="sDevir"></div>
       <label class="lbl">Tutar</label>
       <input type="text" id="sAmt" class="big" inputmode="decimal" value="${st && !st.estimate ? String(st.amount).replace(".", ",") : ""}" placeholder="0,00" autofocus>
-      ${st && st.estimate ? `<div class="note" style="margin-top:6px">Dönem içi olarak ${K.fmt(st.amount, st.ccy)} yazmıştın — bankadaki dönem borcunu yaz, onun yerini alır.</div>` : ""}
+      ${st && st.estimate ? `<div class="note" style="margin-top:var(--s2)">Dönem içi olarak ${K.fmt(st.amount, st.ccy)} yazmıştın — bankadaki dönem borcunu yaz, onun yerini alır.</div>` : ""}
       <div id="sResult" class="note"></div>
       <details class="adv" ${st && (st.cutDate || st.dueDate || st.minPay || st.interest) ? "open" : ""}><summary>Bankadaki kesin tarihler / asgari tutar / faiz (opsiyonel)</summary>
         <div class="row3">
@@ -500,7 +500,7 @@
           <div><label class="lbl">Asgari tutar</label><input type="text" id="sMin" inputmode="decimal" value="${st && st.minPay ? String(st.minPay).replace(".", ",") : ""}"></div>
           <div><label class="lbl">Faiz + vergiler <span class="opt">ekstrede yazan</span></label><input type="text" id="sInt" inputmode="decimal" value="${st && st.interest ? String(st.interest).replace(".", ",") : ""}" placeholder="faiz sayacı için"></div>
         </div>
-        <div class="note" style="margin-top:6px">Boş bırakırsan kartın kesim/ödeme günü ve asgari oranı kullanılır. Tatil kayması vb. durumlarda banka tarihini yaz.</div>
+        <div class="note" style="margin-top:var(--s2)">Boş bırakırsan kartın kesim/ödeme günü ve asgari oranı kullanılır. Tatil kayması vb. durumlarda banka tarihini yaz.</div>
       </details>
       <div class="btnrow">
         <button class="btn" id="sSave">Kaydet</button>
@@ -517,13 +517,13 @@
       const c = K.cardById(DB, cid);
       const exist = DB.statements.find(s => s.cardId === cid && s.ccy === cc && s.month === mo);
       if (!st) editing = exist || null;
-      $("#sExist").innerHTML = (!st && exist) ? `<div class="alert info" style="margin-top:10px"><span class="ic">${ic("info")}</span><div class="grow">${exist.estimate ? "Bu dönem için dönem içi harcama yazmıştın" : "Bu ay için kayıt var"} (${K.fmt(exist.amount, cc)}). Kaydedersen ${exist.estimate ? "ekstre tutarı onun yerini alır" : "<b>güncellenir</b>"}.</div></div>` : "";
+      $("#sExist").innerHTML = (!st && exist) ? `<div class="alert info" style="margin-top:var(--s3)"><span class="ic">${ic("info")}</span><div class="grow">${exist.estimate ? "Bu dönem için dönem içi harcama yazmıştın" : "Bu ay için kayıt var"} (${K.fmt(exist.amount, cc)}). Kaydedersen ${exist.estimate ? "ekstre tutarı onun yerini alır" : "<b>güncellenir</b>"}.</div></div>` : "";
       const dv = devirAt(cid, cc, mo, editing ? editing.id : null, val("sCut") || null);
       const mode = segVal("sMode");
       const cut = val("sCut") ? K.parseISO(val("sCut")) : K.cutDateOf({ month: mo }, c);
       $("#sDevir").innerHTML = dv.prev
-        ? `<div class="note box" style="margin-top:10px">Önceki dönemden (<b>${K.monthLabel(dv.prev.month)}</b>) kalan: <b>${K.fmt(dv.amount, cc)}</b>${dv.amount > K.EPS ? (mode === "total" ? " — bankadaki dönem borcu bunu zaten içerir." : " — otomatik eklenir; önceki ekstreye ödeme girersen devir kendiliğinden güncellenir.") : " — önceki ekstre tamamen ödenmiş."}<br><span class="faint">Kesim: ${K.fmtDate(cut, true)}</span></div>`
-        : `<div class="note" style="margin-top:8px">Bu hesabın ilk ekstresi. Kesim: ${K.fmtDate(cut, true)}</div>`;
+        ? `<div class="note box" style="margin-top:var(--s3)">Önceki dönemden (<b>${K.monthLabel(dv.prev.month)}</b>) kalan: <b>${K.fmt(dv.amount, cc)}</b>${dv.amount > K.EPS ? (mode === "total" ? " — bankadaki dönem borcu bunu zaten içerir." : " — otomatik eklenir; önceki ekstreye ödeme girersen devir kendiliğinden güncellenir.") : " — önceki ekstre tamamen ödenmiş."}<br><span class="faint">Kesim: ${K.fmtDate(cut, true)}</span></div>`
+        : `<div class="note" style="margin-top:var(--s2)">Bu hesabın ilk ekstresi. Kesim: ${K.fmtDate(cut, true)}</div>`;
       const a = K.calc(val("sAmt"));
       if (a > 0) {
         const total = mode === "new" ? K.round2(a + dv.amount) : K.round2(a);
@@ -582,8 +582,8 @@
       ${mh("Toplu ekstre girişi", "Bir ayın tüm ekstrelerini tek ekranda gir. Boş bıraktıkların atlanır.")}
       <div class="row2"><div><label class="lbl">Ay</label><input type="month" id="bMonth" value="${month}"></div>
       <div><label class="lbl">Girdiğin tutarlar</label>${segHtml("bMode", [["total", "Dönem borcu"], ["new", "Yeni harcama"]], DB.statements.filter(s => s.basis === "new").length > DB.statements.length / 2 ? "new" : "total")}</div></div>
-      <div id="bRows" style="margin-top:12px">${rowsHtml()}</div>
-      <div class="note" style="margin-top:8px"><b>Dönem borcu</b> = bankadaki hesap özetindeki tutar (devir dahil). <b>Yeni harcama</b> = sadece o ayın harcaması; önceki dönemden kalan otomatik eklenir.</div>
+      <div id="bRows" style="margin-top:var(--s3)">${rowsHtml()}</div>
+      <div class="note" style="margin-top:var(--s2)"><b>Dönem borcu</b> = bankadaki hesap özetindeki tutar (devir dahil). <b>Yeni harcama</b> = sadece o ayın harcaması; önceki dönemden kalan otomatik eklenir.</div>
       <div class="btnrow"><button class="btn" id="bSave">Hepsini kaydet</button><button class="btn ghost" data-close>Vazgeç</button></div>
     `, { wide: true });
     const m = $("#modal");
@@ -651,8 +651,8 @@
         <div><label class="lbl">Hangi ayın ekstreleri</label><select id="puMonth">${months.map(m => `<option value="${m}" ${m === month ? "selected" : ""}>${K.monthLabel(m)}${m === mainM ? " · bu dönem" : ""}</option>`).join("")}</select></div>
         <div><label class="lbl">Yazdığın tutarlara taksitler dahil mi?</label>${segHtml("puIncl", [["no", "Hayır, eklensin"], ["yes", "Evet, dahil"]], month === mainM ? (DB.settings.periodInstIncl ? "yes" : "no") : "yes")}</div>
       </div>
-      <div id="puRows" style="margin-top:10px">${rowsHtml()}</div>
-      <div class="note" style="margin-top:8px"><b>Enter</b> sonraki karta geçer, son satırda kaydeder. Kutuyu boşaltırsan o kart için yazdığın tutar silinir ve o ay yine taksit listesinden hesaplanır. İşlem yazabilirsin: 3500+250.</div>
+      <div id="puRows" style="margin-top:var(--s3)">${rowsHtml()}</div>
+      <div class="note" style="margin-top:var(--s2)"><b>Enter</b> sonraki karta geçer, son satırda kaydeder. Kutuyu boşaltırsan o kart için yazdığın tutar silinir ve o ay yine taksit listesinden hesaplanır. İşlem yazabilirsin: 3500+250.</div>
       <div class="btnrow"><button class="btn" id="puSave">Kaydet</button><button class="btn ghost" data-close>Vazgeç</button></div>
     `, { wide: true });
     const m = $("#modal");
@@ -720,7 +720,7 @@
         <div><label class="lbl">Not <span class="opt">(opsiyonel)</span></label><input type="text" id="wNote" value="${x ? esc(x.note || "") : ""}" placeholder="ör. Amazon"></div>
         <div><label class="lbl">Tarih</label><input type="date" id="wDate" value="${x ? x.d : K.isoDate(t)}"></div>
       </div>
-      <div id="wInfo" class="note" style="margin-top:8px"></div>
+      <div id="wInfo" class="note" style="margin-top:var(--s2)"></div>
       <div class="btnrow"><button class="btn" id="wSave">Kaydet</button><button class="btn ghost" data-close>Vazgeç</button></div>`);
     const m = $("#modal");
     App.attachCalc($("#wAmt"));
@@ -757,7 +757,7 @@
       ${segHtml("ypCcy", accs.map(a => [a, a === "TRY" ? "₺ TL" : a === "EUR" ? "€ Euro" : "$ Dolar"]), ccy0)}
       <label class="lbl">Karta yansıyan tutar</label>
       <input type="text" id="ypAmt" class="big" inputmode="decimal" autofocus>
-      <div id="ypInfo" class="note box" style="margin-top:10px"></div>
+      <div id="ypInfo" class="note box" style="margin-top:var(--s3)"></div>
       <div class="btnrow"><button class="btn" id="ypSave">Dönem içine ekle</button><button class="btn ghost" data-close>Vazgeç</button></div>`);
     const m = $("#modal");
     App.attachCalc($("#ypAmt"));
@@ -792,14 +792,14 @@
   }
   function pendingListHtml(c) {
     const P = K.cardPending(App.DB, c.id);
-    return `<div class="sec-title" style="margin-top:4px"><h2>Bekleyenler</h2><span class="hint">provizyon · limitten düştü · karta yansıyınca dönem içine geçecek</span></div>
-      <div class="card flat" style="padding:6px 14px;margin-bottom:8px">
+    return `<div class="sec-title" style="margin-top:var(--s1)"><h2>Bekleyenler</h2><span class="hint">provizyon · limitten düştü · karta yansıyınca dönem içine geçecek</span></div>
+      <div class="card flat" style="padding:6px 14px;margin-bottom:var(--s2)">
         ${P.items.length ? P.items.map(x => `<div class="pend-row">
           <div><b>${K.fmt(x.amountTL, "TRY")}</b> <span class="faint">→ ${x.ccy === "TRY" ? "TL" : x.ccy} olarak yansıyacak</span>
             <div class="faint" style="font-size:12.5px">${K.fmtDate(x.d)}${x.note ? " · " + esc(x.note) : ""}${pendOld(x) ? ` · <span class="warn">${K.dayDiff(K.parseISO(x.d), App.today())} gündür bekliyor</span>` : ""}</div></div>
           <div class="pend-acts"><button class="btn sm" data-act="pendPost" data-id="${x.id}">Yansıdı</button><button class="btn sm ghost" data-act="pendCancel" data-id="${x.id}">İptal oldu</button><button class="iconbtn sm" data-act="pendEdit" data-id="${x.id}">${ic("edit")}</button></div></div>`).join("")
           : `<div class="note" style="padding:8px 0">Bekleyen işlem yok.</div>`}
-        <button class="fc-add" style="width:100%;margin:6px 0" data-act="pendNew" data-card="${c.id}">+ Bekleyen ekle</button>
+        <button class="fc-add" style="width:100%;margin:var(--s2) 0" data-act="pendNew" data-card="${c.id}">+ Bekleyen ekle</button>
       </div>`;
   }
 
@@ -829,7 +829,7 @@
       <input type="text" id="eAmt" class="big" inputmode="decimal" placeholder="0,00" autofocus>
       <label class="lbl">Bu tutar o ayın taksitlerini içeriyor mu?</label>
       ${segHtml("eIncl", [["no", "Hayır — taksitler eklensin"], ["yes", "Evet — dahil"]], "no")}
-      <div id="ePrev" class="note box" style="margin-top:10px"></div>
+      <div id="ePrev" class="note box" style="margin-top:var(--s3)"></div>
       <div class="btnrow"><button class="btn" id="eSave">Kaydet</button><button class="btn danger hidden" id="eDel">Kaydı sil</button><button class="btn ghost" data-act="periodUpdate">Tüm kartlar</button><button class="btn ghost" data-close>Vazgeç</button></div>
     `);
     const m = $("#modal");
@@ -854,7 +854,7 @@
       const cut = K.cutDateOf({ month }, c);
       const insts = K.instFor(DB, month).filter(x => x.t.cardId === cid && x.t.ccy === cc);
       const inst = insts.reduce((a, x) => a + x.amount, 0);
-      $("#eInfo").innerHTML = `<div class="note box" style="margin-top:10px"><b>${K.monthLabel(month)} ekstresi</b> · kesim ${K.fmtDate(cut, true)} (${K.dayDiff(t, cut)} gün sonra)${row && row.st.updated ? " · son güncelleme " + K.fmtDate(row.st.updated) : ""}${insts.length ? `<br>Listendeki taksitler bu ay: ${insts.map(x => esc(x.t.desc) + (x.pulled ? " (kalan " + x.n + ", erken kapatma)" : " " + x.idx + "/" + x.t.count) + " · " + K.fmt(x.amount, cc)).join(", ")} = <b>${K.fmt(inst, cc)}</b>` : "<br>Listende bu aya düşen taksit yok."}</div>`;
+      $("#eInfo").innerHTML = `<div class="note box" style="margin-top:var(--s3)"><b>${K.monthLabel(month)} ekstresi</b> · kesim ${K.fmtDate(cut, true)} (${K.dayDiff(t, cut)} gün sonra)${row && row.st.updated ? " · son güncelleme " + K.fmtDate(row.st.updated) : ""}${insts.length ? `<br>Listendeki taksitler bu ay: ${insts.map(x => esc(x.t.desc) + (x.pulled ? " (kalan " + x.n + ", erken kapatma)" : " " + x.idx + "/" + x.t.count) + " · " + K.fmt(x.amount, cc)).join(", ")} = <b>${K.fmt(inst, cc)}</b>` : "<br>Listende bu aya düşen taksit yok."}</div>`;
       const v = K.calc(val("eAmt")), inc = segVal("eIncl") === "yes";
       $("#ePrev").innerHTML = isNaN(v) ? (inst > 0 ? `Tutar yazmazsan bu ay listendeki taksitler sayılır: <b>${K.fmt(inst, cc)}</b>` : "Tutarı yazınca bu ekstreye ne ekleneceğini burada görürsün.")
         : `${K.monthLabel(month)} ekstresine eklenecek <b>${K.fmt(inc ? v : v + inst, cc)}</b>${!inc && inst > 0 ? ` = ${K.fmt(v, cc)} + taksit ${K.fmt(inst, cc)}` : ""}${inc && inst > 0 ? ` <span class="faint">(taksitler bu tutarın içinde sayıldı)</span>` : ""}`;
@@ -898,7 +898,7 @@
         <div><label class="lbl">Taksit sayısı</label><input type="number" id="iCount" min="1" max="48" value="${x ? x.count : 6}"></div>
       </div>
       <label class="lbl">İlk taksitin geldiği ekstre ayı</label><input type="month" id="iStart" value="${x ? x.start : nextM}">
-      <div class="note" style="margin-top:6px">Ertelemeli alışverişte (ör. Ekim'de alıp ilk taksit Ocak'ta) buraya Ocak'ı seç — limit bugünden düşer, Kasım-Aralık ekstresine bir şey eklenmez.</div>
+      <div class="note" style="margin-top:var(--s2)">Ertelemeli alışverişte (ör. Ekim'de alıp ilk taksit Ocak'ta) buraya Ocak'ı seç — limit bugünden düşer, Kasım-Aralık ekstresine bir şey eklenmez.</div>
       <label class="lbl">Bu kartın ileriki ayları</label>
       <div id="iPreview" class="card flat" style="padding:8px 14px"></div>
       ${(() => {
@@ -909,12 +909,12 @@
         if (!remN && !x.pullAt) return "";
         const months = [0, 1, 2, 3].map(k => K.ymAdd(nextP, k));
         return `<details class="adv" open><summary>Taksitleri önden ödemek</summary>
-          ${x.pullAt ? `<div class="alert info" style="margin-top:10px"><span class="ic">${ic("ok")}</span><div class="grow">Kalan taksitler erken kapatıldı → <b>${K.monthLabel(x.pullAt)}</b> ekstresine toplu geliyor.</div><button id="iUnpull">Geri al</button></div>` : `
-          <div class="note" style="margin-top:8px">Kalan <b>${remN} taksit · ${K.fmt(remN * x.per, x.ccy)}</b> (ilki ${K.monthLabel(K.ymDiff(x.start, nextP) >= 0 ? nextP : x.start)} ekstresinde). İki yol var:</div>
-          <div class="note box" style="margin-top:8px"><b>1) Şimdi fazla ödeme yap.</b> Bankaya ödersin; fazlası alacak bakiye olur, gelecek taksitler her ay yine ekstreye gelir ama bu alacaktan kapanır.
-            <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><input type="number" id="iPreN" min="1" max="${remN}" value="${Math.min(3, remN)}" style="width:80px"> taksit = <b id="iPreAmt" class="num"></b><button class="btn sm" id="iPrePay" type="button">Ödeme olarak gir</button></div></div>
-          <div class="note box" style="margin-top:8px"><b>2) Bankadan erken kapattım.</b> Kalan taksitlerin hepsi tek ekstreye gelir (faizli taksitte banka faiz indirimi yapabilir).
-            <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><select id="iPullAt" style="width:auto">${months.map(m => `<option value="${m}">${K.monthLabel(m)} ekstresine</option>`).join("")}</select><button class="btn sm soft" id="iPull" type="button">Erken kapat</button></div></div>`}
+          ${x.pullAt ? `<div class="alert info" style="margin-top:var(--s3)"><span class="ic">${ic("ok")}</span><div class="grow">Kalan taksitler erken kapatıldı → <b>${K.monthLabel(x.pullAt)}</b> ekstresine toplu geliyor.</div><button id="iUnpull">Geri al</button></div>` : `
+          <div class="note" style="margin-top:var(--s2)">Kalan <b>${remN} taksit · ${K.fmt(remN * x.per, x.ccy)}</b> (ilki ${K.monthLabel(K.ymDiff(x.start, nextP) >= 0 ? nextP : x.start)} ekstresinde). İki yol var:</div>
+          <div class="note box" style="margin-top:var(--s2)"><b>1) Şimdi fazla ödeme yap.</b> Bankaya ödersin; fazlası alacak bakiye olur, gelecek taksitler her ay yine ekstreye gelir ama bu alacaktan kapanır.
+            <div style="display:flex;gap:8px;align-items:center;margin-top:var(--s2);flex-wrap:wrap"><input type="number" id="iPreN" min="1" max="${remN}" value="${Math.min(3, remN)}" style="width:80px"> taksit = <b id="iPreAmt" class="num"></b><button class="btn sm" id="iPrePay" type="button">Ödeme olarak gir</button></div></div>
+          <div class="note box" style="margin-top:var(--s2)"><b>2) Bankadan erken kapattım.</b> Kalan taksitlerin hepsi tek ekstreye gelir (faizli taksitte banka faiz indirimi yapabilir).
+            <div style="display:flex;gap:8px;align-items:center;margin-top:var(--s2);flex-wrap:wrap"><select id="iPullAt" style="width:auto">${months.map(m => `<option value="${m}">${K.monthLabel(m)} ekstresine</option>`).join("")}</select><button class="btn sm soft" id="iPull" type="button">Erken kapat</button></div></div>`}
         </details>`;
       })()}
       <div class="btnrow"><button class="btn" id="iSave">Kaydet</button>${x ? `<button class="btn danger" id="iDel">Sil</button>` : ""}<button class="btn ghost" data-close>Vazgeç</button></div>
@@ -965,9 +965,9 @@
         <div><label class="lbl">Bankanın kuru</label><input type="text" id="cvR" inputmode="decimal" value="${String(rate0).replace(".", ",")}"></div>
         <div><label class="lbl">TL karşılığı</label><input type="text" id="cvT" inputmode="decimal"></div>
       </div>
-      <div class="note" style="margin-top:6px">Bankanın uygulamasında çevrim işleminin TL tutarını görüyorsan onu yaz — kur kendiliğinden hesaplanır.</div>
+      <div class="note" style="margin-top:var(--s2)">Bankanın uygulamasında çevrim işleminin TL tutarını görüyorsan onu yaz — kur kendiliğinden hesaplanır.</div>
       <label class="lbl">Çevrim tarihi</label><input type="date" id="cvD" value="${day}">
-      <div id="cvSum" class="note box" style="margin-top:10px"></div>
+      <div id="cvSum" class="note box" style="margin-top:var(--s3)"></div>
       <div class="btnrow"><button class="btn" id="cvSave">Kaydet</button><button class="btn ghost" data-close>Vazgeç</button></div>
     `);
     let tlTouched = false;
@@ -1028,22 +1028,22 @@
       <div class="note box"><b>${esc(c.name)} ${ccy !== "TRY" ? ccy : ""} · ${K.monthLabel(row.month)} ekstresi</b> — dönem borcu ${K.fmt(row.amount, ccy)} · ödenen ${K.fmt(row.paid, ccy)}${x ? "" : ` · kalan <b>${K.fmt(row.rem, ccy)}</b>${row.minGap > K.EPS ? ` · asgari eksik <b>${K.fmt(row.minGap, ccy)}</b>` : ""}`}</div>
       <label class="lbl">Taksitlendirilen tutar</label>
       <input type="text" id="siP" class="big" inputmode="decimal" value="${String(left).replace(".", ",")}" autofocus>
-      ${!x && row.minGap > K.EPS ? `<div class="note" style="margin-top:4px">Bankalar genelde önce asgariyi ödemeni ister; bu yüzden kalan − asgari eksik (${K.fmt(row.rem - row.minGap, ccy)}) yazıldı. Asgariyi ayrıca ödemen gerekiyor.</div>` : ""}
+      ${!x && row.minGap > K.EPS ? `<div class="note" style="margin-top:var(--s1)">Bankalar genelde önce asgariyi ödemeni ister; bu yüzden kalan − asgari eksik (${K.fmt(row.rem - row.minGap, ccy)}) yazıldı. Asgariyi ayrıca ödemen gerekiyor.</div>` : ""}
       <div class="row3">
         <div><label class="lbl">Taksit sayısı</label><input type="number" id="siN" min="2" max="36" value="${x ? x.count : 3}"></div>
         <div><label class="lbl">Aylık faiz %</label><input type="text" id="siR" inputmode="decimal" value="${String(x && x.rate != null ? x.rate : ri.akt).replace(".", ",")}"></div>
         <div><label class="lbl">İlk taksit ekstresi</label><input type="month" id="siS" value="${startM}"></div>
       </div>
-      <label class="check" style="margin-top:8px"><input type="checkbox" id="siTax" ${!x || x.taxIncl !== false ? "checked" : ""}> <span>Faize KKDF + BSMV ekle (×${String(DB.settings.taxMult).replace(".", ",")})</span></label>
+      <label class="check" style="margin-top:var(--s2)"><input type="checkbox" id="siTax" ${!x || x.taxIncl !== false ? "checked" : ""}> <span>Faize KKDF + BSMV ekle (×${String(DB.settings.taxMult).replace(".", ",")})</span></label>
       <label class="lbl">Aylık taksit <span class="opt">bankanın gösterdiği tutar varsa onu yaz</span></label>
       <input type="text" id="siPer" inputmode="decimal" value="${x ? String(x.per).replace(".", ",") : ""}">
-      <div id="siSum" class="note" style="margin-top:6px"></div>
+      <div id="siSum" class="note" style="margin-top:var(--s2)"></div>
       <label class="lbl">Bu kartın ileriki ayları</label>
       <div id="siPrev" class="card flat" style="padding:8px 14px"></div>
       ${x ? `<details class="adv" ${x.pullAt ? "open" : ""}><summary>Erken kapatma</summary>
-        ${x.pullAt ? `<div class="alert info" style="margin-top:10px"><span class="ic">${ic("ok")}</span><div class="grow">Kalan taksitler <b>${K.monthLabel(x.pullAt)}</b> ekstresine ${x.pullAmount ? K.fmt(x.pullAmount, ccy) + " olarak" : "toplu"} geliyor.</div><button id="siUnpull" type="button">Geri al</button></div>`
-        : `<div class="note" style="margin-top:8px">Erken kapatınca banka kalan taksitlerin faizini düşer; bankanın söylediği kapama tutarını yaz (kalan anapara tahmini dolu gelir).</div>
-          <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><select id="siPullAt" style="width:auto">${[0, 1, 2].map(k => K.ymAdd(K.nextPeriodMonth(c, t), k)).filter(m => m >= x.start && m <= K.ymAdd(x.start, x.count - 1)).map(m => `<option value="${m}">${K.monthLabel(m)} ekstresine</option>`).join("")}</select>
+        ${x.pullAt ? `<div class="alert info" style="margin-top:var(--s3)"><span class="ic">${ic("ok")}</span><div class="grow">Kalan taksitler <b>${K.monthLabel(x.pullAt)}</b> ekstresine ${x.pullAmount ? K.fmt(x.pullAmount, ccy) + " olarak" : "toplu"} geliyor.</div><button id="siUnpull" type="button">Geri al</button></div>`
+        : `<div class="note" style="margin-top:var(--s2)">Erken kapatınca banka kalan taksitlerin faizini düşer; bankanın söylediği kapama tutarını yaz (kalan anapara tahmini dolu gelir).</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:var(--s2);flex-wrap:wrap"><select id="siPullAt" style="width:auto">${[0, 1, 2].map(k => K.ymAdd(K.nextPeriodMonth(c, t), k)).filter(m => m >= x.start && m <= K.ymAdd(x.start, x.count - 1)).map(m => `<option value="${m}">${K.monthLabel(m)} ekstresine</option>`).join("")}</select>
           <input type="text" id="siPullAmt" inputmode="decimal" style="width:140px" value="${String(K.annuityLeft(x.per, (x.rate || 0) / 100 * (x.taxIncl === false ? 1 : DB.settings.taxMult), x.count - done)).replace(".", ",")}"><button class="btn sm soft" id="siPull" type="button">Erken kapat</button></div>`}
       </details>` : ""}
       <div class="btnrow"><button class="btn" id="siSave">${x ? "Kaydet" : "Taksitlendirmeyi kaydet"}</button>${x ? `<button class="btn danger" id="siDel">Sil</button>` : ""}<button class="btn ghost" data-close>Vazgeç</button></div>
@@ -1094,14 +1094,14 @@
       ${mh("Borç bitiş planı", "Her ay borca ayırabileceğin tutarı yaz: ay ay hangi kartın ne zaman biteceğini ve toplam faizi gösterir. Bilinen dönem içi harcamalar, taksitler ve bekleyenler hesaba katılır.")}
       <label class="lbl">Her ay borca ayırabileceğim (₺)</label>
       <input type="text" id="poAmt" class="big" inputmode="decimal" value="${init}" autofocus>
-      <div class="btnrow" style="margin-top:8px">
+      <div class="btnrow" style="margin-top:var(--s2)">
         ${[-5000, -1000, 1000, 5000].map(d => `<button class="btn sm ghost" type="button" data-po="${d}">${d > 0 ? "+" : "−"}${K.fmtPlain(Math.abs(d))}</button>`).join("")}
         ${need ? `<button class="btn sm soft" type="button" id="poNeed">Asgarileri aksatmayan en az: ${K.fmt(need)}</button>` : ""}
       </div>
-      ${SN.total > 0.5 ? `<div class="note box" style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label class="check"><input type="checkbox" id="poShared"> <span>${esc(SN.who.join(", "))}'den alacağım <b>${K.fmt(SN.total)}</b> gelince borca yatır:</span></label>
+      ${SN.total > 0.5 ? `<div class="note box" style="margin-top:var(--s3);display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label class="check"><input type="checkbox" id="poShared"> <span>${esc(SN.who.join(", "))}'den alacağım <b>${K.fmt(SN.total)}</b> gelince borca yatır:</span></label>
         <select id="poSharedK" style="width:auto">${[0, 1, 2, 3, 4, 5, 6].map(k => `<option value="${k}" ${k === 1 ? "selected" : ""}>${k === 0 ? "şimdi" : K.monthLabel(K.ymAdd(baseYM, k)) + " ekstresinde"}</option>`).join("")}</select></div>` : ""}
       <div id="poOut"></div>
-      <div class="note" style="margin-top:14px">Varsayımlar: yeni harcama yapmadığın (girilmiş dönem içi, taksit ve bekleyenler hariç), her ay önce tüm asgarilerin, sonra faizi en yüksek borcun ödendiği varsayılır. Faiz her ekstrenin dönem borcuna göre TCMB kademesinden, KKDF/BSMV dahil hesaplanır; faize faiz işlemez. Dövizler bugünkü kurla TL'ye çevrilir. Gerçek tutarlar bankanın hesabına göre biraz oynar.</div>
+      <div class="note" style="margin-top:var(--s3)">Varsayımlar: yeni harcama yapmadığın (girilmiş dönem içi, taksit ve bekleyenler hariç), her ay önce tüm asgarilerin, sonra faizi en yüksek borcun ödendiği varsayılır. Faiz her ekstrenin dönem borcuna göre TCMB kademesinden, KKDF/BSMV dahil hesaplanır; faize faiz işlemez. Dövizler bugünkü kurla TL'ye çevrilir. Gerçek tutarlar bankanın hesabına göre biraz oynar.</div>
     `, { wide: true });
     App.attachCalc($("#poAmt"));
     const run = () => {
@@ -1121,12 +1121,12 @@
           <div><small>Toplam faiz (vergili)</small><b>${K.fmt(R.totalInterest)}</b></div>
           <div><small>Toplam ödeme</small><b>${K.fmt(R.totalPaid)}</b><small>bugünkü borç ${K.fmt(startDebt)} + bilinen yeni yük + faiz</small></div>
         </div>`;
-      const warn = R.shortMonths ? `<div class="alert bad" style="margin-top:12px"><span class="ic">${ic("late")}</span><div class="grow"><b>Bu tutar ${R.shortMonths} ayda asgarileri karşılamıyor</b> (ilki ${K.monthLabel(R.months.find(x => x.short).month)}: asgariler toplamı ${K.fmt(R.months.find(x => x.short).minNeed)}). Asgarinin altında kalmak gecikme faizi, sicil kaydı ve 3 seferde kartın kapanması demek; bu tablo o durumda yanıltıcıdır.${need ? ` Hiçbir ay aksatmamak için ayda en az <b>${K.fmt(need)}</b> gerekiyor.` : ""}</div></div>` : "";
-      const cmp = (R0 ? `<div class="note box ok-box" style="margin-top:12px">Alacağın gelirse: ${R0.done && R.done && R0.endK > R.endK ? `<b>${R0.endK - R.endK} ay erken</b> biter, ` : ""}<b>${K.fmt(Math.max(0, R0.totalInterest - R.totalInterest))}</b> daha az faiz${R0.shortMonths > R.shortMonths ? `, asgarinin karşılanmadığı ay ${R0.shortMonths} → ${R.shortMonths}` : ""}.</div>` : "") + (R.done ? `<div class="note box" style="margin-top:12px">${plus.done && plus.endK < R.endK ? `Ayda <b>${K.fmt(2000)}</b> fazla ödersen <b>${R.endK - plus.endK} ay erken</b> biter, <b>${K.fmt(R.totalInterest - plus.totalInterest)}</b> daha az faiz ödersin. ` : ""}${M.done ? `Sadece asgari ödeseydin borç ${K.monthLabel(M.endMonth)}'de biterdi ve ${K.fmt(M.totalInterest)} faiz öderdin.` : ""}</div>` : "");
+      const warn = R.shortMonths ? `<div class="alert bad" style="margin-top:var(--s3)"><span class="ic">${ic("late")}</span><div class="grow"><b>Bu tutar ${R.shortMonths} ayda asgarileri karşılamıyor</b> (ilki ${K.monthLabel(R.months.find(x => x.short).month)}: asgariler toplamı ${K.fmt(R.months.find(x => x.short).minNeed)}). Asgarinin altında kalmak gecikme faizi, sicil kaydı ve 3 seferde kartın kapanması demek; bu tablo o durumda yanıltıcıdır.${need ? ` Hiçbir ay aksatmamak için ayda en az <b>${K.fmt(need)}</b> gerekiyor.` : ""}</div></div>` : "";
+      const cmp = (R0 ? `<div class="note box ok-box" style="margin-top:var(--s3)">Alacağın gelirse: ${R0.done && R.done && R0.endK > R.endK ? `<b>${R0.endK - R.endK} ay erken</b> biter, ` : ""}<b>${K.fmt(Math.max(0, R0.totalInterest - R.totalInterest))}</b> daha az faiz${R0.shortMonths > R.shortMonths ? `, asgarinin karşılanmadığı ay ${R0.shortMonths} → ${R.shortMonths}` : ""}.</div>` : "") + (R.done ? `<div class="note box" style="margin-top:var(--s3)">${plus.done && plus.endK < R.endK ? `Ayda <b>${K.fmt(2000)}</b> fazla ödersen <b>${R.endK - plus.endK} ay erken</b> biter, <b>${K.fmt(R.totalInterest - plus.totalInterest)}</b> daha az faiz ödersin. ` : ""}${M.done ? `Sadece asgari ödeseydin borç ${K.monthLabel(M.endMonth)}'de biterdi ve ${K.fmt(M.totalInterest)} faiz öderdin.` : ""}</div>` : "");
       const accs = R.accounts.slice().sort((a, b) => (a.paidOff == null ? 999 : a.paidOff) - (b.paidOff == null ? 999 : b.paidOff));
-      const accHtml = `<div class="sec-title" style="margin-top:16px"><h2>Kartlar ne zaman biter?</h2></div><div class="card flat" style="padding:6px 14px">${accs.map(a => `<div class="kv-line"><span><span class="dot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${cardColor(a.card)};margin-right:6px"></span><b>${esc(a.card.name)}</b> ${a.ccy !== "TRY" ? ccyPill(a.ccy) : ""}</span><span class="num">${a.paidOffMonth ? (a.paidOff === 0 ? "bu ay" : K.monthLabel(a.paidOffMonth)) : "—"} <span class="faint" style="font-size:12.5px">· faiz ${K.fmt(a.interest)}</span></span></div>`).join("")}</div>`;
+      const accHtml = `<div class="sec-title" style="margin-top:var(--s4)"><h2>Kartlar ne zaman biter?</h2></div><div class="card flat" style="padding:6px 14px">${accs.map(a => `<div class="kv-line"><span><span class="dot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${cardColor(a.card)};margin-right:6px"></span><b>${esc(a.card.name)}</b> ${a.ccy !== "TRY" ? ccyPill(a.ccy) : ""}</span><span class="num">${a.paidOffMonth ? (a.paidOff === 0 ? "bu ay" : K.monthLabel(a.paidOffMonth)) : "—"} <span class="faint" style="font-size:12.5px">· faiz ${K.fmt(a.interest)}</span></span></div>`).join("")}</div>`;
       const rows = R.months.map(x => `<div class="po-row ${x.short ? "short" : ""}"><b>${x.k === 0 ? "Şimdi · " + K.MONTHS_SHORT[+x.month.slice(5) - 1] : K.monthLabel(x.month, true)}</b><span class="num">${K.fmt(x.pay)}</span><span class="num">${K.fmt(x.minNeed)}</span><span class="num ${x.interest > 0 ? "bad" : ""}">${x.interest > 0 ? K.fmt(x.interest) : "—"}</span><span class="num"><b>${K.fmt(x.debtEnd)}</b></span></div>`).join("");
-      $("#poOut").innerHTML = head + warn + cmp + accHtml + `<div class="sec-title" style="margin-top:16px"><h2>Ay ay</h2><span class="hint">ödeme · o ayın asgarileri · işleyen faiz · ay sonu kalan</span></div>
+      $("#poOut").innerHTML = head + warn + cmp + accHtml + `<div class="sec-title" style="margin-top:var(--s4)"><h2>Ay ay</h2><span class="hint">ödeme · o ayın asgarileri · işleyen faiz · ay sonu kalan</span></div>
         <div class="po-table"><div class="po-row po-head"><span>Ekstre</span><span>Ödeme</span><span>Asgariler</span><span>Faiz</span><span>Kalan</span></div>${rows}</div>`;
       if (m > 0 && DB.settings.planMonthly !== m) { DB.settings.planMonthly = m; persist(); App.render(); }
     };
@@ -1152,10 +1152,10 @@
       const b = num("plAmt"); if (!(b > 0)) return toast("Geçerli bir tutar gir");
       const P = K.planPayments(DB, b, App.today());
       if (!P.lines.length) { $("#plOut").innerHTML = `<div class="empty">Ödenecek açık borç yok 🎉</div>`; return; }
-      $("#plOut").innerHTML = `<div class="sec-title" style="margin-top:18px"><h2>Önerilen dağıtım</h2></div>
+      $("#plOut").innerHTML = `<div class="sec-title" style="margin-top:var(--s4)"><h2>Önerilen dağıtım</h2></div>
         ${P.lines.map(l => `<div class="kv-line"><span><b>${esc(l.item.card.name)}</b> ${ccyPill(l.item.ccy)} <span class="faint" style="font-size:12.5px">${l.kind} · ${esc(l.why)}</span></span><span class="num">${K.fmt(l.amount, l.item.ccy)}${l.item.ccy !== "TRY" ? ` <span class="faint">≈ ${K.fmt(l.tl)}</span>` : ""}</span></div>`).join("")}
-        <div class="note" style="margin-top:8px">Dağıtılan ${K.fmt(P.used)} · artan ${K.fmt(P.left)}${P.saving > K.EPS ? ` · bu ödemeler devretseydi ayda ≈ <b>${K.fmt(P.saving)}</b> faiz (vergili) işleyecekti` : ""}</div>
-        <div class="note" style="margin-top:6px">Paranın aylar içinde nasıl biteceğini görmek için <button class="linkbtn" data-act="openPayoff">${ic("flag")} Borç bitiş planı</button>.</div>
+        <div class="note" style="margin-top:var(--s2)">Dağıtılan ${K.fmt(P.used)} · artan ${K.fmt(P.left)}${P.saving > K.EPS ? ` · bu ödemeler devretseydi ayda ≈ <b>${K.fmt(P.saving)}</b> faiz (vergili) işleyecekti` : ""}</div>
+        <div class="note" style="margin-top:var(--s2)">Paranın aylar içinde nasıl biteceğini görmek için <button class="linkbtn" data-act="openPayoff">${ic("flag")} Borç bitiş planı</button>.</div>
         <div class="btnrow"><button class="btn" id="plApply">Bu ödemeleri bugünün tarihiyle kaydet</button></div>
         <div class="note faint">Bu sadece kayıt — gerçek ödemeyi bankandan yapmalısın.</div>`;
       $("#plApply").onclick = () => {

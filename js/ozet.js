@@ -14,10 +14,10 @@
   function welcomeHtml() {
     return `<div class="card" style="text-align:center;padding:42px 22px">
       <div style="font-size:40px">💳</div>
-      <h2 style="font-size:24px;margin:10px 0 8px">Kart Kokpiti'ne hoş geldin</h2>
+      <h2 style="font-size:24px;margin:var(--s3) 0 var(--s2)">Kart Kokpiti'ne hoş geldin</h2>
       <p class="muted" style="max-width:520px;margin:0 auto;line-height:1.65">Kredi kartlarını tek yerden takip et: ekstreler, ödemeler, asgari tutarlar,
       TL / Euro / Dolar hesapları ve ortak harcamalar. Veriler yalnızca bu tarayıcıda durur.</p>
-      <div class="btnrow" style="justify-content:center;margin-top:24px">
+      <div class="btnrow" style="justify-content:center;margin-top:var(--s5)">
         <button class="btn" data-act="addCard">+ İlk kartını ekle</button>
         <button class="btn ghost" data-act="importExcel">${ic("chart")} Eski Excel'imi aktar</button>
         <button class="btn ghost" data-act="importJSON">${ic("upload")} Yedek / eski uygulama verisi</button>
@@ -166,8 +166,8 @@
         <span>${K.MONTHS_SHORT[+x.month.slice(5) - 1]}${x.initial ? "*" : ""}${x.month.slice(5) === "01" || x === TL[0] ? `<small>${x.month.slice(2, 4)}</small>` : ""}</span></div>`;
     }).join("");
     const trendHtml = TL.length ? `<div class="bars">${bars}</div>
-      <div class="lim-legend" style="margin-top:10px">${hasCut ? '<span><i class="t1"></i>kesildi</span>' : ""}${TL.some(x => x.period > K.EPS) ? '<span><i class="t2"></i>bu dönem</span>' : ""}${TL.some(x => x.future > K.EPS) ? '<span><i class="t3"></i>gelecek (girilen + taksit)</span>' : ""}</div>
-      ${initM.length ? `<div class="faint" style="font-size:12px;margin-top:6px">* ${initM.map(m => K.monthLabel(m)).join(", ")}: uygulamaya girilen ilk ekstre — önceki aylardan devreden borç da içinde, o yüzden yüksek görünür.${clip ? " Diğer aylar okunsun diye çubuğu kesik çizildi; tutar üstünde tam yazıyor." : ""}</div>` : ""}`
+      <div class="lim-legend" style="margin-top:var(--s3)">${hasCut ? '<span><i class="t1"></i>kesildi</span>' : ""}${TL.some(x => x.period > K.EPS) ? '<span><i class="t2"></i>bu dönem</span>' : ""}${TL.some(x => x.future > K.EPS) ? '<span><i class="t3"></i>gelecek (girilen + taksit)</span>' : ""}</div>
+      ${initM.length ? `<div class="faint" style="font-size:12px;margin-top:var(--s2)">* ${initM.map(m => K.monthLabel(m)).join(", ")}: uygulamaya girilen ilk ekstre — önceki aylardan devreden borç da içinde, o yüzden yüksek görünür.${clip ? " Diğer aylar okunsun diye çubuğu kesik çizildi; tutar üstünde tam yazıyor." : ""}</div>` : ""}`
       : `<div class="empty" style="padding:14px 8px">Ekstre ya da dönem içi harcama girince aylara göre burada görünür.</div>`;
 
     /* limit */
@@ -183,7 +183,7 @@
         <div class="lim-legend">${lp.credit > K.EPS ? `<span class="ok">alacak +${K.fmt(lp.credit, "TRY", { noDec: true })}</span>` : `<span><i class="s1"></i>borç ${K.fmt(l.debt, "TRY", { noDec: true })}</span>`}${l.period > K.EPS ? `<span><i class="s2"></i>dönem içi / girilen ${K.fmt(l.period, "TRY", { noDec: true })}</span>` : ""}${l.inst > K.EPS ? `<span><i class="s3"></i>kalan taksit ${K.fmt(l.inst, "TRY", { noDec: true })}</span>` : ""}${l.prov > K.EPS ? `<span><i class="s4"></i>bekleyen ${K.fmt(l.prov, "TRY", { noDec: true })}</span>` : ""}${L ? `<span class="faint">limit ${K.fmt(L, "TRY", { noDec: true })}</span>` : ""}</div>
         ${l.fx.length ? `<div class="fx-lines">${l.fx.map(f => `${esc(f.card)} ${f.ccy}: ${K.fmt(f.amount, f.ccy)} × ${String(f.rate).replace(".", ",")} = <b>${K.fmt(f.tl, "TRY", { noDec: true })}</b>`).join("<br>")}<span class="faint"> — limitten düştü</span></div>` : ""}
         ${l.missing.length ? `<div class="fx-miss">⚠ ${l.missing.map(m => esc(m.card) + " " + K.fmt(m.amount, m.ccy)).join(", ")} — ${[...new Set(l.missing.map(m => m.ccy))].map(c => K.CCY_SYM[c]).join("/")} kuru girilmediği için limite eklenmedi. <button class="linkbtn" data-act="fetchRates">Kuru çek</button></div>` : ""}
-        ${l.kind === "group" ? `<div class="faint" style="font-size:12px;margin-top:3px">${esc(l.sub)} · ortak limit</div>` : ""}</div>`;
+        ${l.kind === "group" ? `<div class="faint" style="font-size:12px;margin-top:var(--s1)">${esc(l.sub)} · ortak limit</div>` : ""}</div>`;
     }).join("");
 
     /* uyarıları önem sırasına koy (gecikmiş > yakın > bilgi), ilk 3'ü göster, kalanı katla */
@@ -215,7 +215,7 @@
           <div class="big">${moneyHtml(S.totalTL)}</div>
           <div class="ccys">${ccyChips}</div>
           <div class="foot">Kesilmiş ekstrelerden kalan · ${rateLine()} · ${t.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}</div>
-          ${(() => { const N = sharedNetTL(); return N.total > 0.5 ? `<div class="foot" style="margin-top:4px">${esc(N.who.join(", "))}'den alacağın <b>${K.fmt(N.total)}</b> düşülünce net borç: <b>${K.fmt(S.totalTL - N.total)}</b></div>` : ""; })()}
+          ${(() => { const N = sharedNetTL(); return N.total > 0.5 ? `<div class="foot" style="margin-top:var(--s1)">${esc(N.who.join(", "))}'den alacağın <b>${K.fmt(N.total)}</b> düşülünce net borç: <b>${K.fmt(S.totalTL - N.total)}</b></div>` : ""; })()}
           ${(() => {
             const lines = [];
             const R = restructLeft(DB, t);
@@ -251,15 +251,15 @@
       </div>
 
       <div class="sec-title"><h2>Ödeme takvimi</h2><span class="hint">son ödeme tarihine göre</span></div>
-      <div class="card"><div class="list">${open.length ? open.map(i => payRow(i)).join("") : `<div class="empty">${S.items.length ? "Açık ekstre yok — tüm güncel ekstreler ödendi 🎉" : "Henüz ekstre girilmemiş. Bankandan gelen son ekstrenin <b>dönem borcunu</b> gir; son ödeme tarihi ve asgari otomatik hesaplanır."}<br><button class="btn sm soft" style="margin-top:12px" data-act="quickStatement">${S.items.length ? "Yeni ekstre gir" : "İlk ekstreyi gir"}</button></div>`}</div>
-        ${closed.length ? `<details style="margin-top:6px"><summary class="faint" style="cursor:pointer;font-size:13px;padding:8px 4px">Bu dönem kapananlar (${closed.length})</summary><div class="list">${closed.map(i => payRow(i, { dim: true })).join("")}</div></details>` : ""}
+      <div class="card"><div class="list">${open.length ? open.map(i => payRow(i)).join("") : `<div class="empty">${S.items.length ? "Açık ekstre yok — tüm güncel ekstreler ödendi 🎉" : "Henüz ekstre girilmemiş. Bankandan gelen son ekstrenin <b>dönem borcunu</b> gir; son ödeme tarihi ve asgari otomatik hesaplanır."}<br><button class="btn sm soft" style="margin-top:var(--s3)" data-act="quickStatement">${S.items.length ? "Yeni ekstre gir" : "İlk ekstreyi gir"}</button></div>`}</div>
+        ${closed.length ? `<details style="margin-top:var(--s2)"><summary class="faint" style="cursor:pointer;font-size:13px;padding:8px 4px">Bu dönem kapananlar (${closed.length})</summary><div class="list">${closed.map(i => payRow(i, { dim: true })).join("")}</div></details>` : ""}
       </div>
 
       <div class="detay-title">Detay</div>
       <details class="sec-fold" data-fold="fc"><summary><h2>Bu dönem ve sonraki aylar</h2><span class="hint">henüz ekstreye girmeyen harcamalar · limitten düşer</span></summary>
       <div class="card">
         ${FS.length ? `<div class="fc-grid">${fcHtml}</div>${FS.length > 4 ? `<div style="margin-top:var(--s3)"><button class="btn sm ghost" data-act="fcMore">${App.fcAll ? "Daha az göster" : "+" + (FS.length - 4) + " ay daha göster"}</button></div>` : ""}` : `<div class="empty" style="padding:14px 8px">Henüz dönem içi harcama ya da taksit yok. Bankanın uygulamasına baktığında dönem içi harcamaları, taksitli bir alışveriş yaptığında taksiti ekle — burada aylara göre görünür.</div>`}
-        <div class="btnrow" style="margin-top:14px">
+        <div class="btnrow" style="margin-top:var(--s3)">
           <button class="btn" data-act="periodUpdate">${ic("cart")} Dönem içi harcamaları güncelle</button>
           <button class="btn ghost" data-act="periodOne">${ic("calendar")} Başka bir ayı güncelle</button>
           <button class="btn ghost" data-act="newInst">+ Taksit ekle</button>

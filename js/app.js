@@ -50,7 +50,7 @@
     const kind = toastKind(msg);
     t.classList.remove("kind-ok", "kind-bad", "kind-info"); t.classList.add("kind-" + kind);
     const icn = kind === "bad" ? "late" : kind === "ok" ? "ok" : "info";
-    t.innerHTML = `<span class="ic">${ic(icn)}</span><span class="tx">${esc(msg)}</span>` + (action ? `<button style="margin-left:10px;background:transparent;border:0;color:inherit;font-weight:700;text-decoration:underline;flex:none">${esc(action.label)}</button>` : "");
+    t.innerHTML = `<span class="ic">${ic(icn)}</span><span class="tx">${esc(msg)}</span>` + (action ? `<button style="margin-left:var(--s3);background:transparent;border:0;color:inherit;font-weight:700;text-decoration:underline;flex:none">${esc(action.label)}</button>` : "");
     if (action) t.querySelector("button").onclick = () => { t.classList.remove("show"); action.fn(); };
     t.style.pointerEvents = action ? "auto" : "none";
     t.classList.add("show");
@@ -401,7 +401,7 @@
         <span class="k"><kbd>Esc</kbd></span><span>Pencereyi kapat</span>
         <span class="k"><kbd>Enter</kbd> / <kbd>Boşluk</kbd></span><span>Odaktaki kartı / satırı aç</span>
       </div>
-      <div class="note" style="margin-top:14px">Tutar kutularına işlem yazabilirsin: <b>1500+2300</b>, <b>24000/6</b>, <b>1.250,50</b>.</div>`);
+      <div class="note" style="margin-top:var(--s3)">Tutar kutularına işlem yazabilirsin: <b>1500+2300</b>, <b>24000/6</b>, <b>1.250,50</b>.</div>`);
   }
   App.ACT.showKeys = showKeys;
   /* hedefin ARDINDAN gelen ilk ana buton (yoksa sondaki) */

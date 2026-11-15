@@ -211,9 +211,9 @@
       <div class="kv-line"><span>Hesap</span><span class="num">${esc(user.email)}</span></div>
       <div class="kv-line"><span>Durum</span><span class="num ${status === "syncing" ? "" : "ok"}">${status === "syncing" ? "senkronize ediliyor…" : "açık · otomatik · iki yönlü"}</span></div>
       <div class="kv-line"><span>Son senkron</span><span class="num">${meta.lastSyncAt ? relTime(meta.lastSyncAt) : "henüz yok"}</span></div>
-      ${lastError ? `<div class="flag" style="margin-top:4px">${esc(lastError)}</div>` : ""}
+      ${lastError ? `<div class="flag" style="margin-top:var(--s1)">${esc(lastError)}</div>` : ""}
       <div class="btnrow"><button class="btn ghost sm" id="syNow">Şimdi kontrol et</button><button class="btn ghost sm" id="syLogout">Çıkış yap</button></div>
-      <div class="note" style="margin-top:10px">Her iki yönde otomatik: bir cihazda değiştir, birkaç saniyede diğerinde görünsün. Aynı anda iki cihazda
+      <div class="note" style="margin-top:var(--s3)">Her iki yönde otomatik: bir cihazda değiştir, birkaç saniyede diğerinde görünsün. Aynı anda iki cihazda
         değişiklik yaparsan sonuncusu kazanır. Yalnızca senin hesabın erişebilir (Firestore güvenlik kuralları).</div>`;
   }
   function bind(el) {

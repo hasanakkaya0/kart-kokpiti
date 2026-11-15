@@ -274,8 +274,8 @@
         </div>
         <label class="lbl">Excel'deki aylık "Borç" tutarları neydi?</label>
         ${App.segHtml("xMode", [["new", "O ayın yeni harcaması"], ["total", "Bankadaki dönem borcu"]], "new")}
-        <div class="note box" style="margin-top:8px">Excel'inde her ay ayrı satırdı ve <b>tüm ayların kalanları toplanıyordu</b> — yani tutarlar o ayın yeni harcamasıydı (önerilen). Uygulama bunları devir zincirine çevirir: <i>Ağustos dönem borcu = Ağustos harcaması + Temmuz'dan kalan</i>. Toplam borcun Excel'deki "Toplam Kalan" ile aynı çıkar ama artık ikiye katlanma riski olmaz.</div>
-        <div class="note" style="margin-top:8px">• "Ödenen" sütunu, o ayın son ödeme gününe tarihlenmiş tek bir ödeme olarak aktarılır.<br>• Excel'de kesim / son ödeme günleri olmadığı için varsayılan (8 / 18) atanır — aktarımdan sonra kartlarda düzeltmen gerekir.<br>• Gezilerde tüm harcamaları <b>${esc(P.names ? P.names.me : "sen")}</b> ödemiş sayılır; satırdaki pay dağılımı korunur.</div>
+        <div class="note box" style="margin-top:var(--s2)">Excel'inde her ay ayrı satırdı ve <b>tüm ayların kalanları toplanıyordu</b> — yani tutarlar o ayın yeni harcamasıydı (önerilen). Uygulama bunları devir zincirine çevirir: <i>Ağustos dönem borcu = Ağustos harcaması + Temmuz'dan kalan</i>. Toplam borcun Excel'deki "Toplam Kalan" ile aynı çıkar ama artık ikiye katlanma riski olmaz.</div>
+        <div class="note" style="margin-top:var(--s2)">• "Ödenen" sütunu, o ayın son ödeme gününe tarihlenmiş tek bir ödeme olarak aktarılır.<br>• Excel'de kesim / son ödeme günleri olmadığı için varsayılan (8 / 18) atanır — aktarımdan sonra kartlarda düzeltmen gerekir.<br>• Gezilerde tüm harcamaları <b>${esc(P.names ? P.names.me : "sen")}</b> ödemiş sayılır; satırdaki pay dağılımı korunur.</div>
         ${has ? `<label class="lbl">Mevcut verilerin</label>${App.segHtml("xMerge", [["replace", "Sil, Excel ile başla"], ["merge", "Üstüne ekle"]], "replace")}` : ""}
         <div class="btnrow"><button class="btn" id="xGo">Aktar</button><button class="btn ghost" data-close>Vazgeç</button></div>`);
       App.bindSeg($("#modal"));

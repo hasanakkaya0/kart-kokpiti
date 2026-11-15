@@ -28,8 +28,8 @@
     const cardsMin = activeCards().map(c => { const mi = K.minRateInfo(DB, c); return `<div class="kv-line"><span>${esc(c.name)} <span class="faint" style="font-size:12.5px">${esc(mi.why)}</span></span><span class="num">%${Math.round(mi.rate * 100)}</span></div>`; }).join("");
     const groups = DB.groups.map(g => { const cs = DB.cards.filter(c => c.groupId === g.id); return `<div class="kv-line"><span><b>${esc(g.name)}</b><br><span class="faint" style="font-size:12.5px">${cs.map(c => esc(c.name)).join(", ") || "kart yok"}</span></span><span class="num">${g.limit ? K.fmt(g.limit, "TRY", { noDec: true }) : "limit yok"} <button class="iconbtn sm" data-act="editGroup" data-id="${g.id}">${ic("edit")}</button></span></div>`; }).join("");
     el.innerHTML = `
-      <h2 style="font-size:22px;margin-bottom:4px">Ayarlar</h2>
-      <div class="muted" style="font-size:14px;margin-bottom:8px">Tüm hesaplama kuralları buradan değişir.</div>
+      <h2 style="font-size:22px;margin-bottom:var(--s1)">Ayarlar</h2>
+      <div class="muted" style="font-size:14px;margin-bottom:var(--s2)">Tüm hesaplama kuralları buradan değişir.</div>
 
       <div class="sec-title"><h2>Veri ve yedek</h2><span class="hint">${App.storageMode === "browser" ? "bu tarayıcıda kayıtlı ✓" : "<span class='bad'>geçici hafıza — yedek al!</span>"}</span></div>
       <div class="card">
@@ -41,7 +41,7 @@
           <button class="btn ghost" data-act="exportXLSX">${ic("chart")} Excel'e aktar</button>
           <button class="btn ghost" data-act="importExcel">${ic("import")} Eski Excel'den aktar</button>
         </div>
-        <div class="note" style="margin-top:12px">Veriler yalnızca bu tarayıcıda saklanır, hiçbir sunucuya gitmez. Telefon ve bilgisayar arasında taşımak için yedek dosyasını indirip diğer cihazda yükle.</div>
+        <div class="note" style="margin-top:var(--s3)">Veriler yalnızca bu tarayıcıda saklanır, hiçbir sunucuya gitmez. Telefon ve bilgisayar arasında taşımak için yedek dosyasını indirip diğer cihazda yükle.</div>
       </div>
 
       <div class="sec-title"><h2>Senkron</h2><span class="hint">uçtan uca şifreli · isteğe bağlı</span></div>
@@ -55,7 +55,7 @@
           <button class="btn soft" data-act="fetchRates">⟳ Güncel kuru internetten çek (${K.MONTHS[+nowYM.slice(5) - 1]})</button>
           ${allCount > 6 ? `<button class="btn ghost" data-act="toggleRateMonths">${App.rateMonthsAll ? "Son 6 ay" : "Tüm aylar (" + allCount + ")"}</button>` : ""}
         </div>
-        <div class="note" style="margin-top:10px">Her ay kendi kurunu kullanır; bir ayın kurunu değiştirmek diğerlerini bozmaz. İnternetten çekilen kur Avrupa Merkez Bankası referansıdır — bankanın satış kuru biraz daha yüksektir, ekstrendeki kuru yazman en doğrusu.</div>
+        <div class="note" style="margin-top:var(--s3)">Her ay kendi kurunu kullanır; bir ayın kurunu değiştirmek diğerlerini bozmaz. İnternetten çekilen kur Avrupa Merkez Bankası referansıdır — bankanın satış kuru biraz daha yüksektir, ekstrendeki kuru yazman en doğrusu.</div>
       </div>
 
       <div class="sec-title"><h2>Ortak limit grupları</h2><button class="btn sm soft" data-act="editGroup">+ Grup ekle</button></div>
@@ -71,8 +71,8 @@
               <div><label class="lbl" style="margin-top:0">Eşik ve altı %</label><input type="number" id="mrLow" value="${r.low}"></div>
               <div><label class="lbl" style="margin-top:0">Eşik üstü %</label><input type="number" id="mrHigh" value="${r.high}"></div>
             </div>
-            <div class="note" style="margin-top:10px">Güncel kural: kart limiti <b>${K.fmtPlain(r.threshold)} ₺ ve altı %${r.low}</b>, üstü <b>%${r.high}</b>. Ortak limitli kartlarda grubun limiti esas alınır. Kart ayarında "elle" seçersen o kart için sabit oran kullanılır.</div>
-            ${cardsMin ? `<div style="margin-top:10px">${cardsMin}</div>` : ""}
+            <div class="note" style="margin-top:var(--s3)">Güncel kural: kart limiti <b>${K.fmtPlain(r.threshold)} ₺ ve altı %${r.low}</b>, üstü <b>%${r.high}</b>. Ortak limitli kartlarda grubun limiti esas alınır. Kart ayarında "elle" seçersen o kart için sabit oran kullanılır.</div>
+            ${cardsMin ? `<div style="margin-top:var(--s3)">${cardsMin}</div>` : ""}
             <div class="btnrow"><button class="btn" data-act="saveMinRule">Kuralı kaydet</button></div>
           </div>
         </div>
@@ -82,8 +82,8 @@
             <div class="trow head tiers"><span>Dönem borcu</span><span>Akdi %</span><span>Gecikme %</span></div>
             ${(st.rateTiers || []).map((x, i, T) => `<div class="trow tiers"><span>${i === 0 ? `<input type="text" inputmode="decimal" id="tMax0" value="${x.max}" style="width:100px"> ₺ altı` : x.max == null ? `${K.fmtPlain(T[i - 1].max)} ₺ üstü` : `${K.fmtPlain(T[i - 1].max)} – <input type="text" inputmode="decimal" id="tMax${i}" value="${x.max}" style="width:100px"> ₺`}</span>
               <input type="text" inputmode="decimal" id="tAkt${i}" value="${String(x.akt).replace(".", ",")}"><input type="text" inputmode="decimal" id="tGec${i}" value="${String(x.gec).replace(".", ",")}"></div>`).join("")}
-            <div class="row3" style="margin-top:10px"><div><label class="lbl" style="margin-top:0">Vergi çarpanı</label><input type="text" id="fTax" inputmode="decimal" value="${String(st.taxMult).replace(".", ",")}"></div></div>
-            <div class="note" style="margin-top:10px">Her kartın faizi o ekstrenin <b>dönem borcuna</b> göre kademeden seçilir, üstüne KKDF %15 + BSMV %15 (×1,30) eklenir. Asgari ödenip kalan devrederse akdi faiz, asgarinin altında kalınırsa eksik kısma gecikme faizi işler. TCMB oranları değiştirirse buradan güncelle. Bir kartta farklı oran varsa kart ayarından "elle" seç.</div>
+            <div class="row3" style="margin-top:var(--s3)"><div><label class="lbl" style="margin-top:0">Vergi çarpanı</label><input type="text" id="fTax" inputmode="decimal" value="${String(st.taxMult).replace(".", ",")}"></div></div>
+            <div class="note" style="margin-top:var(--s3)">Her kartın faizi o ekstrenin <b>dönem borcuna</b> göre kademeden seçilir, üstüne KKDF %15 + BSMV %15 (×1,30) eklenir. Asgari ödenip kalan devrederse akdi faiz, asgarinin altında kalınırsa eksik kısma gecikme faizi işler. TCMB oranları değiştirirse buradan güncelle. Bir kartta farklı oran varsa kart ayarından "elle" seç.</div>
             ${activeCards().map(c => { const L = K.ledger(DB, c.id, K.accountsOf(c)[0], t); if (!L.current) return ""; const ri = K.rateInfo(DB, c, L.current, K.accountsOf(c)[0]); return `<div class="kv-line"><span>${esc(c.name)} <span class="faint" style="font-size:12.5px">${esc(ri.why)}</span></span><span class="num">${K.fmtRate(ri.akt)} → ${K.fmtRate(ri.eff)}</span></div>`; }).join("")}
             <div class="btnrow"><button class="btn" data-act="saveRates2">Kaydet</button><button class="btn ghost" data-act="resetTiers">TCMB varsayılanı</button></div>
           </div>
@@ -97,7 +97,7 @@
             <button class="btn ghost sm" data-act="loadDemo">Örnek veri yükle</button>
             <button class="btn danger sm" data-act="resetAll">Tüm verileri sil</button>
           </div>
-          <div class="note" style="margin-top:10px">Tüm verileri silmeden önce yedek indirmeyi unutma.</div>
+          <div class="note" style="margin-top:var(--s3)">Tüm verileri silmeden önce yedek indirmeyi unutma.</div>
         </div>
       </details>
     `;
