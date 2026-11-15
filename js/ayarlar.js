@@ -44,7 +44,7 @@
         <div class="note" style="margin-top:var(--s3)">Veriler yalnızca bu tarayıcıda saklanır, hiçbir sunucuya gitmez. Telefon ve bilgisayar arasında taşımak için yedek dosyasını indirip diğer cihazda yükle.</div>
       </div>
 
-      <div class="sec-title"><h2>Senkron</h2><span class="hint">uçtan uca şifreli · isteğe bağlı</span></div>
+      <div class="sec-title"><h2>Senkron</h2><span class="hint">giriş yapınca otomatik, iki yönlü</span></div>
       <div class="card" id="syncCard"></div>
 
       <div class="sec-title"><h2>Döviz kurları</h2><span class="hint">ay bazında · boş ay öncekini devralır</span></div>

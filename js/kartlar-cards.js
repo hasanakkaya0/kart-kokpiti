@@ -30,9 +30,10 @@
     if (!(lim && LU)) flags.push(`<span class="flag">Limit girilmedi</span>`);
     const limPct = LU && LU.limit ? Math.max(0, Math.min(100, Math.round(100 * LU.used / LU.limit))) : 0;
     const limCls = limPct >= 90 ? "bad" : limPct >= 70 ? "warn" : "";
+    const initial = (c.bank || c.name || "?").trim().charAt(0).toLocaleUpperCase("tr-TR");
     return `<div class="ccard ${c.archived ? "archived" : ""}" style="--bank:${cardColor(c)}" data-act="cardDetail" data-card="${c.id}">
       <div class="face">
-        <div class="top"><div><div class="n">${esc(c.name)}</div><div class="bk">${esc(c.bank || "")}${c.archived ? " · arşivde" : ""}${c.spendCard ? ' · <span class="spendtag">harcama kartı</span>' : ""}</div></div><span class="emv" aria-hidden="true"></span></div>
+        <div class="top"><div class="namewrap"><span class="bankbadge" aria-hidden="true">${esc(initial)}</span><div><div class="n">${esc(c.name)}</div><div class="bk">${esc(c.bank || "")}${c.archived ? " · arşivde" : ""}${c.spendCard ? ' · <span class="spendtag">harcama kartı</span>' : ""}</div></div></div><span class="emv" aria-hidden="true"></span></div>
         <div class="bot"><span class="digits">${c.last4 ? "•••• " + esc(c.last4) : ""}</span><span>${K.accountsOf(c).map(x => x === "TRY" ? "₺" : K.CCY_SYM[x]).join(" ")}</span></div>
       </div>
       <div class="body">
@@ -71,8 +72,8 @@
       </div>
       ${arch.length ? `<div style="margin-top:var(--s4)"><button class="btn sm ghost" data-act="toggleArchived">${App.showArchived ? "Arşivi gizle" : "Arşivdeki kartları göster (" + arch.length + ")"}</button></div>
         ${App.showArchived ? `<div class="cardgrid" style="margin-top:var(--s3)">${arch.map(cardTile).join("")}</div>` : ""}` : ""}
-      <div class="sec-title" id="instSec"><h2>Taksitler</h2><button class="btn sm soft" data-act="newInst">+ Taksit ekle</button></div>
-      ${instHtml ? `<div class="card"><div class="list">${instHtml}</div></div>` : `<div class="faint" style="font-size:13px">Taksitli alışverişlerini ekle — gelecek ayların yükünde görünsün.</div>`}
+      <div class="sec-title sub" id="instSec"><h2>Taksitler</h2><button class="btn sm soft" data-act="newInst">+ Taksit ekle</button></div>
+      ${instHtml ? `<div class="card flat inst-list"><div class="list">${instHtml}</div></div>` : `<div class="faint" style="font-size:13px">Taksitli alışverişlerini ekle — gelecek ayların yükünde görünsün.</div>`}
     `;
   }
 

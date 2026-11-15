@@ -177,10 +177,11 @@
       const w = v => L ? Math.max(0, Math.min(100, 100 * v / L)) : 0;
       const pct = L ? Math.max(0, Math.round(100 * l.used / L)) : 0;
       const lp = limParts(l);
+      const limCls = pct >= 90 ? "bad" : pct >= 70 ? "warn" : "";
       const head = L ? `%${pct} dolu · <b class="${l.avail < 0 ? "bad" : ""}">${moneyHtml(l.avail)}</b> kullanılabilir` : K.fmt(l.used, "TRY", { noDec: true }) + " kullanımda · limit girilmemiş";
       return `<div class="lim"><div class="h"><b>${esc(l.name)}</b><span>${head}</span></div>
-        <div class="progress stack"><i class="s1" style="width:${w(lp.debt)}%"></i><i class="s2" style="width:${w(lp.period)}%"></i><i class="s3" style="width:${w(lp.inst)}%"></i><i class="s4" style="width:${w(lp.prov)}%"></i></div>
-        <div class="lim-legend">${lp.credit > K.EPS ? `<span class="ok">alacak +${K.fmt(lp.credit, "TRY", { noDec: true })}</span>` : `<span><i class="s1"></i>borç ${K.fmt(l.debt, "TRY", { noDec: true })}</span>`}${l.period > K.EPS ? `<span><i class="s2"></i>dönem içi / girilen ${K.fmt(l.period, "TRY", { noDec: true })}</span>` : ""}${l.inst > K.EPS ? `<span><i class="s3"></i>kalan taksit ${K.fmt(l.inst, "TRY", { noDec: true })}</span>` : ""}${l.prov > K.EPS ? `<span><i class="s4"></i>bekleyen ${K.fmt(l.prov, "TRY", { noDec: true })}</span>` : ""}${L ? `<span class="faint">limit ${K.fmt(L, "TRY", { noDec: true })}</span>` : ""}</div>
+        <div class="progress ${limCls}" title="%${pct} dolu"><i style="width:${w(l.used)}%"></i></div>
+        <div class="lim-legend">${lp.credit > K.EPS ? `<span class="ok">alacak +${K.fmt(lp.credit, "TRY", { noDec: true })}</span>` : `<span>borç ${K.fmt(l.debt, "TRY", { noDec: true })}</span>`}${l.period > K.EPS ? `<span>dönem içi / girilen ${K.fmt(l.period, "TRY", { noDec: true })}</span>` : ""}${l.inst > K.EPS ? `<span>kalan taksit ${K.fmt(l.inst, "TRY", { noDec: true })}</span>` : ""}${l.prov > K.EPS ? `<span>bekleyen ${K.fmt(l.prov, "TRY", { noDec: true })}</span>` : ""}${L ? `<span class="faint">limit ${K.fmt(L, "TRY", { noDec: true })}</span>` : ""}</div>
         ${l.fx.length ? `<div class="fx-lines">${l.fx.map(f => `${esc(f.card)} ${f.ccy}: ${K.fmt(f.amount, f.ccy)} × ${String(f.rate).replace(".", ",")} = <b>${K.fmt(f.tl, "TRY", { noDec: true })}</b>`).join("<br>")}<span class="faint"> — limitten düştü</span></div>` : ""}
         ${l.missing.length ? `<div class="fx-miss">⚠ ${l.missing.map(m => esc(m.card) + " " + K.fmt(m.amount, m.ccy)).join(", ")} — ${[...new Set(l.missing.map(m => m.ccy))].map(c => K.CCY_SYM[c]).join("/")} kuru girilmediği için limite eklenmedi. <button class="linkbtn" data-act="fetchRates">Kuru çek</button></div>` : ""}
         ${l.kind === "group" ? `<div class="faint" style="font-size:12px;margin-top:var(--s1)">${esc(l.sub)} · ortak limit</div>` : ""}</div>`;
@@ -280,7 +281,8 @@
     /* Detay bölümlerinin açık/kapalı hali yeniden çizimlerde korunsun (varsayılan: sadece "Bu dönem" açık) */
     /* ödeme / iade sonrası ilgili satırı kısa süre vurgula */
     if (App.flash && Date.now() - App.flash.t < 4000) {
-      const row = el.querySelector(`.item[data-card="${App.flash.card}"][data-ccy="${App.flash.ccy}"]`);
+      const sel = `[data-card="${App.flash.card}"][data-ccy="${App.flash.ccy}"]`;
+      const row = el.querySelector(`.item${sel}`) || el.querySelector(`.fc-line${sel}`);
       if (row) { row.classList.add("flash"); try { row.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch (e) { } }
     }
     App.flash = null;

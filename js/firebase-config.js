@@ -1,7 +1,6 @@
 /* Firebase web ayarı (Firebase konsolu → Proje ayarları → Uygulamalar → Web).
-   Bu değerler GİZLİ DEĞİL: veriyi koruyan şey Firestore güvenlik kuralları
-   (yalnızca sahibinin hesabı erişebilir, bkz. firebase/firestore.rules) + senkron
-   parolasıyla yapılan uçtan uca şifrelemedir (js/sync.js) — bu anahtar değil.
+   Bu değerler GİZLİ DEĞİL: veriyi koruyan şey yalnızca Firestore güvenlik kuralları
+   (sahibinin hesabı dışında kimse erişemez, bkz. firebase/firestore.rules) — şifreleme yok, bilerek (js/sync.js).
    GitHub'a konması sorun değil. */
 window.KK_FIREBASE = {
   apiKey: "AIzaSyA2gCkQIyS5A7tSBKNcQ8M4HUQiOrmcKnM",

@@ -164,6 +164,7 @@
       const intP = num("sInt"); if (intP > 0) target.interest = intP; else delete target.interest;
       clearBumps(target.id);
       if (!editing) DB.statements.push(target);
+      App.flash = { card: cid, ccy: cc, t: Date.now() };
       App.closeModal(); App.commit(editing ? "Ekstre güncellendi" : "Ekstre eklendi");
     };
     const d = $("#sDel");
@@ -397,6 +398,7 @@
         if (ex.estimate) ex.updated = K.isoDate(t);
       } else DB.statements.push({ id: K.uid("s"), cardId: c.id, ccy: cc, month, amount: v, basis: "new", estimate: true, instIncl: !!DB.settings.periodInstIncl, updated: K.isoDate(t) });
       DB.pending = DB.pending.filter(p => p.id !== id);
+      App.flash = { card: c.id, ccy: cc, t: Date.now() };
       App.closeModal(); App.commit(`Yansıdı: ${K.fmt(v, cc)} ${K.monthLabel(month)} dönem içine eklendi`);
     };
   }
@@ -483,6 +485,7 @@
       Object.assign(st, { amount: v, basis: "new", estimate: true, instIncl: inc, updated: K.isoDate(t) }); clearBumps(st.id);
       delete st.cutDate; delete st.dueDate; delete st.minPay;
       if (!ex) DB.statements.push(st);
+      App.flash = { card: cid, ccy: cc, t: Date.now() };
       App.closeModal(); App.commit(K.monthLabel(month) + " ekstresi için tutar kaydedildi");
     };
     $("#eDel").onclick = () => {
