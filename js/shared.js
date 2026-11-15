@@ -8,7 +8,7 @@
 (function () {
   "use strict";
   const K = window.KT, App = window.App;
-  const { $, $$, esc } = App, { ic } = App.I;
+  const { $, $$, esc } = App, { ic, moneyHtml, moneyMultiHtml } = App.I;
   App.sh = { personId: null, trip: "all", last: {} };
 
   const DBs = () => App.DB.shared;
@@ -77,9 +77,9 @@
     if (!bp.hasPos && !bp.hasNeg) balHtml = `<div class="v ok">Hesap kapalı ✓</div><div class="s">Aranızda açık borç yok</div>`;
     else {
       const lines = [];
-      if (bp.hasPos) lines.push(`<div class="v ok">${K.fmtMulti(bp.pos)}</div><div class="s">${esc(p.name)} sana borçlu</div>`);
-      if (bp.hasNeg) lines.push(`<div class="v info" style="${bp.hasPos ? "font-size:20px;margin-top:8px" : ""}">${K.fmtMulti(bp.neg)}</div><div class="s">sen ${esc(p.name)}'e borçlusun</div>`);
-      if (Object.keys(bp.pos).length + Object.keys(bp.neg).length > 1 || !bal.TRY) lines.push(`<div class="s" style="margin-top:6px">Net ≈ <b>${K.fmt(Math.abs(net.v))}</b> ${net.v >= 0 ? "alacak" : "borç"} (güncel kurla)${net.miss ? " · bazı kurlar eksik" : ""}</div>`);
+      if (bp.hasPos) lines.push(`<div class="v ok">${moneyMultiHtml(bp.pos)}</div><div class="s">${esc(p.name)} sana borçlu</div>`);
+      if (bp.hasNeg) lines.push(`<div class="v info" style="${bp.hasPos ? "font-size:20px;margin-top:var(--s2)" : ""}">${moneyMultiHtml(bp.neg)}</div><div class="s">sen ${esc(p.name)}'e borçlusun</div>`);
+      if (Object.keys(bp.pos).length + Object.keys(bp.neg).length > 1 || !bal.TRY) lines.push(`<div class="s" style="margin-top:var(--s2)">Net ≈ <b>${moneyHtml(Math.abs(net.v), "TRY")}</b> ${net.v >= 0 ? "alacak" : "borç"} (güncel kurla)${net.miss ? " · bazı kurlar eksik" : ""}</div>`);
       balHtml = lines.join("");
     }
     const ents = filteredEntries(p.id, trip);
@@ -100,7 +100,7 @@
         const s = r.s;
         return head + `<div class="item clickable" data-act="shEditSettle" data-id="${s.id}" style="--bank:var(--ok)"><span class="bar"></span>
           <div><div class="t">${ic("users")} ${s.dir === "in" ? esc(p.name) + " sana ödedi" : "Sen " + esc(p.name) + "'e ödedin"}</div><div class="m">${s.paidAs ? "₺ olarak: " + K.fmt(s.paidAs.amount) + " (kur " + String(s.paidAs.rate).replace(".", ",") + ")" : "hesaplaşma"}${s.note ? " · " + esc(s.note) : ""}</div></div>
-          <div class="r"><div class="amt" style="font-size:16px">${K.fmt(s.amount, s.ccy)}</div></div></div>`;
+          <div class="r"><div class="amt" style="font-size:16px">${moneyHtml(s.amount, s.ccy)}</div></div></div>`;
       }
       const e = r.e, imp = K.entryImpact(e);
       const c = e.cardId ? K.cardById(App.DB, e.cardId) : null;
@@ -108,8 +108,8 @@
       return head + `<div class="item clickable" data-act="shEdit" data-id="${e.id}" style="--bank:${c ? App.cardColor(c) : "var(--line-2)"}"><span class="bar"></span>
         <div><div class="t">${esc(e.place || "Harcama")} ${App.ccyPill(e.ccy)}${tt ? ` <span class="sbadge">${ic("plane")} ${esc(tt.name)}</span>` : ""}</div>
         <div class="m">${[e.city, e.cat, e.paidBy === "them" ? esc(p.name) + " ödedi" : "sen ödedin" + (c ? " · " + esc(c.name) : ""), splitLabel(e, p.name)].filter(Boolean).map(x => esc(x)).join(" · ")}</div></div>
-        <div class="r"><div class="amt" style="font-size:16px">${K.fmt(e.amount, e.ccy)}</div>
-        <div class="eff ${imp > 0 ? "ok" : imp < 0 ? "info" : "faint"}">${imp > 0 ? "+" + K.fmt(imp, e.ccy) + " alacak" : imp < 0 ? "−" + K.fmt(-imp, e.ccy) + " borç" : "etkisiz"}</div></div></div>`;
+        <div class="r"><div class="amt" style="font-size:16px">${moneyHtml(e.amount, e.ccy)}</div>
+        <div class="eff ${imp > 0 ? "ok" : imp < 0 ? "info" : "faint"}">${imp > 0 ? "+" + moneyHtml(imp, e.ccy) + " alacak" : imp < 0 ? "−" + moneyHtml(-imp, e.ccy) + " borç" : "etkisiz"}</div></div></div>`;
     }).join("");
 
     el.innerHTML = `
@@ -138,14 +138,14 @@
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
           <div><div class="muted" style="font-size:13px;font-weight:600">${t ? ic("plane") + " " + esc(t.name) : trip === "none" ? "Geziye bağlı olmayanlar" : "Tüm harcamalar"}${tr && tr.n ? " · " + K.fmtDate(tr.from) + " – " + K.fmtDate(tr.to, true) : ""}</div>
-          <div style="font-size:24px;font-weight:750;letter-spacing:-.02em" class="num">${K.fmtMulti(sm.tot)}</div>
+          <div style="font-size:24px;font-weight:750;letter-spacing:-.02em" class="num">${moneyMultiHtml(sm.tot)}</div>
           <div class="faint" style="font-size:13px">${sm.count} harcama${(sm.tot.EUR || sm.tot.USD) ? " · ≈ " + K.fmt(sm.totTL) + " (harcama ayının kuruyla)" : ""}</div></div>
           ${t ? `<div class="btnrow" style="margin:0"><button class="btn sm ghost" data-act="shShare" data-trip="${t.id}">${ic("share")} Bu geziyi paylaş</button><button class="btn sm ghost" data-act="shTripForm" data-id="${t.id}">${ic("edit")}</button></div>` : ""}
         </div>
         <div class="split3">
-          <div><small>Senin payın</small><b>${K.fmtMulti(sm.mine)}</b></div>
-          <div><small>${esc(p.name)}'in payı</small><b>${K.fmtMulti(sm.theirs)}</b></div>
-          <div><small>Kim ödedi</small><b style="font-size:13px">Sen ${K.fmtMulti(sm.paidMe)}${K.CCYS.some(c => sm.paidThem[c]) ? "<br>" + esc(p.name) + " " + K.fmtMulti(sm.paidThem) : ""}</b></div>
+          <div><small>Senin payın</small><b>${moneyMultiHtml(sm.mine)}</b></div>
+          <div><small>${esc(p.name)}'in payı</small><b>${moneyMultiHtml(sm.theirs)}</b></div>
+          <div><small>Kim ödedi</small><b style="font-size:13px">Sen ${moneyMultiHtml(sm.paidMe)}${K.CCYS.some(c => sm.paidThem[c]) ? "<br>" + esc(p.name) + " " + moneyMultiHtml(sm.paidThem) : ""}</b></div>
         </div>
         ${cats.length ? `<div style="margin-top:14px">${cats.slice(0, 8).map(([k, v]) => `<div class="catbar"><span>${esc(k)}</span><div class="progress"><i style="width:${Math.round(100 * v / maxCat)}%"></i></div><span>${K.fmt(v, "TRY", { noDec: true })}</span></div>`).join("")}</div>` : ""}
       </div>

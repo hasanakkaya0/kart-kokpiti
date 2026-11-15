@@ -38,9 +38,19 @@
 
   /* ---------------- bildirim ---------------- */
   let toastTimer = null;
+  /* mesaj metnine göre durum: aşikâr hata/başarı dışında nötr kalır (yanlış sınıflandırma riskini azaltır) */
+  function toastKind(msg) {
+    const s = String(msg).toLowerCase();
+    if (/okunamadı|tanınmadı|bulunamadı|çekilemedi|yüklenemedi|başarısız|\bhata/.test(s)) return "bad";
+    if (/kaydedildi|eklendi|güncellendi|silindi|indirildi|yüklendi|kopyalandı|aktarıldı|açıldı|kapatıldı|alındı|tamamlandı|edildi/.test(s)) return "ok";
+    return "info";
+  }
   function toast(msg, action) {
     const t = $("#toast");
-    t.innerHTML = esc(msg) + (action ? ` <button style="margin-left:10px;background:transparent;border:0;color:inherit;font-weight:700;text-decoration:underline">${esc(action.label)}</button>` : "");
+    const kind = toastKind(msg);
+    t.classList.remove("kind-ok", "kind-bad", "kind-info"); t.classList.add("kind-" + kind);
+    const icn = kind === "bad" ? "late" : kind === "ok" ? "ok" : "info";
+    t.innerHTML = `<span class="ic">${ic(icn)}</span><span class="tx">${esc(msg)}</span>` + (action ? `<button style="margin-left:10px;background:transparent;border:0;color:inherit;font-weight:700;text-decoration:underline;flex:none">${esc(action.label)}</button>` : "");
     if (action) t.querySelector("button").onclick = () => { t.classList.remove("show"); action.fn(); };
     t.style.pointerEvents = action ? "auto" : "none";
     t.classList.add("show");
@@ -281,9 +291,11 @@
   const ic = name => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ICONS.info}</svg>`;
   /* para: kuruş kısmı soluk ve küçük (metin aynı kalır: ₺1.234,56) */
   const moneyHtml = (v, ccy) => { const s = K.fmt(v, ccy), i = s.lastIndexOf(","); return i < 0 ? esc(s) : esc(s.slice(0, i)) + `<span class="cents">${esc(s.slice(i))}</span>`; };
+  /* K.fmtMulti'nin kuruş-soluk hâli: çoklu para birimi ("₺500,00 + €20,00") — her parçanın kuruşu ayrı soluklaşır */
+  const moneyMultiHtml = obj => { const parts = K.CCYS.filter(c => Math.abs(obj[c] || 0) > K.EPS).map(c => moneyHtml(Math.abs(obj[c]), c)); return parts.length ? parts.join(" + ") : moneyHtml(0, "TRY"); };
 
   /* diğer dosyalarla paylaşılan yardımcılar */
-  App.I = { ic, moneyHtml, COLORS, BANKS, persist, toast, mh, val, num, segVal, segHtml, activeCards, cardColor, ccyPill, accountOptions, currentStmtMonth, devirAt, limParts, hotAccounts, sharedNetTL, restructLeft, fmtTL0, rateText, chipClass, rateLine, esc, $, $$, loadDB, initTheme };
+  App.I = { ic, moneyHtml, moneyMultiHtml, COLORS, BANKS, persist, toast, mh, val, num, segVal, segHtml, activeCards, cardColor, ccyPill, accountOptions, currentStmtMonth, devirAt, limParts, hotAccounts, sharedNetTL, restructLeft, fmtTL0, rateText, chipClass, rateLine, esc, $, $$, loadDB, initTheme };
   const renderOzet = (...a) => App.I.renderOzet(...a);
   const renderKartlar = (...a) => App.I.renderKartlar(...a);
   const renderAyarlar = (...a) => App.I.renderAyarlar(...a);
