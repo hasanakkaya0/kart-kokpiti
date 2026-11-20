@@ -83,7 +83,7 @@ h1,h2,h3{margin:0;letter-spacing:-.015em}
 .bottomnav > .spill{background:var(--accent-soft);border-radius:12px}
 
 main{padding-top:28px}
-section.page{display:none} section.page.active{display:block;animation:fade .18s ease}
+section.page{display:none} section.page.active{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
 /* ---------- temel bileşenler ---------- */
@@ -619,7 +619,6 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
 @media (max-width:760px){.bottomnav{background:var(--glass);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5)}}
 
 /* ---------- sayfa girişi (app.js pageEnter): sırayla, bulanıktan nete ---------- */
-section.page.enter{animation:none}
 .page.enter :is(.alert,.next-card,.card,.ccard,.sec-title,.sec-fold > summary,.empty){animation:enter-rise .6s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(var(--i,0) * 55ms)}
 .page.enter :is(.card,.ccard,.next-card,.alert) :is(.card,.sec-title,.sec-fold > summary,.empty){animation:none}
 .page.enter :is(.sec-title h2,.sec-fold > summary h2){animation:enter-wipe .7s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(var(--i,0) * 55ms + 60ms)}
