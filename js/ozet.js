@@ -295,9 +295,9 @@
     /* ---------- kutular ---------- */
     const wh = (title, hint, go) => `<div class="wh"><h3>${title}</h3>${hint ? `<span class="hint">${hint}</span>` : ""}${go ? `<button class="linkbtn go" data-act="${go[0]}">${go[1]} →</button>` : ""}</div>`;
     const W = {};
-    W.hero = { size: "w8", name: "Toplam borç", html: heroHtml };
+    W.hero = { size: "w8 tall", name: "Toplam borç", html: heroHtml };
     if (nextHtml) W.next = { size: "w4", name: "Sıradaki iş", html: nextHtml };
-    W.pay = { size: "w8", name: "Ödeme takvimi", html: `<div class="card" id="payList">${wh("Ödeme takvimi", "son ödeme tarihine göre")}<div class="list">${payListHtml}</div>${closedHtml}</div>` };
+    W.pay = { size: "w8 tall", name: "Ödeme takvimi", html: `<div class="card" id="payList">${wh("Ödeme takvimi", "son ödeme tarihine göre")}<div class="list">${payListHtml}</div>${closedHtml}</div>` };
 
     /* 8) canlı faiz sayacı */
     let fzBase = 0, fzDay = 0;
@@ -345,8 +345,8 @@
           <span class="col"><em>${K.fmt(m.tl, "TRY", { noDec: true })}</em><span class="stk" style="height:${Math.max(1.5, 100 * m.tl / mx).toFixed(2)}%">${segs.map(x => `<i style="flex:${x.v};background:${cardColor(x.c)}"></i>`).join("")}</span></span>
           <span class="ml">${K.MONTHS_SHORT[+m.month.slice(5) - 1]}${idx === 0 ? " <small>bu dönem</small>" : ""}</span></button>`;
       }).join("");
-      W.cash = { size: "w8", name: "Önümüzdeki 6 ay", html: `<div class="card">${wh("Önümüzdeki 6 ay", "ekstrelere girecek tutarlar · aya tıkla, dökümü aşağıda", ["periodUpdate", "Dönem içini güncelle"])}
-        ${F6.length ? `<div class="cbars">${bars}</div><div class="fc-grid one">${fcColHtml(sel, F6.indexOf(sel))}</div>` : `<div class="empty" style="padding:14px 8px">Henüz dönem içi harcama ya da taksit yok. Bankanın uygulamasındaki dönem içi harcamaları ya da taksitlerini ekle — burada aylara göre görünür.</div>`}
+      W.cash = { size: "w12", name: "Önümüzdeki 6 ay", html: `<div class="card">${wh("Önümüzdeki 6 ay", "ekstrelere girecek tutarlar · aya tıkla, dökümü aşağıda", ["periodUpdate", "Dönem içini güncelle"])}
+        ${F6.length ? `<div class="cash-split"><div class="cbars">${bars}</div><div class="fc-grid one">${fcColHtml(sel, F6.indexOf(sel))}</div></div>` : `<div class="empty" style="padding:14px 8px">Henüz dönem içi harcama ya da taksit yok. Bankanın uygulamasındaki dönem içi harcamaları ya da taksitlerini ekle — burada aylara göre görünür.</div>`}
         <div class="btnrow" style="margin-top:var(--s3)"><button class="btn sm ghost" data-act="periodOne">${ic("calendar")} Başka bir ayı güncelle</button><button class="btn sm ghost" data-act="newInst">+ Taksit ekle</button></div></div>` };
     }
 
@@ -434,7 +434,7 @@
 
   /* ---------- dashboard düzeni: sıra + gizlenenler, localStorage (cihaza özel) ---------- */
   const DASH_KEY = "kartTakip_dash";
-  const DASH_DEFAULT = ["hero", "next", "pay", "faiz", "cal", "cash", "bitis", "dagilim", "limit", "trend"];
+  const DASH_DEFAULT = ["hero", "next", "faiz", "bitis", "pay", "cal", "dagilim", "cash", "limit", "trend"];
   function dashCfg() {
     let c = null; try { c = JSON.parse(localStorage.getItem(DASH_KEY)); } catch (e) { }
     return { order: (c && Array.isArray(c.order)) ? c.order : DASH_DEFAULT.slice(), hidden: (c && Array.isArray(c.hidden)) ? c.hidden : [] };
