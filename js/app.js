@@ -144,14 +144,14 @@
       const L = b.offsetLeft, R = box.clientWidth - L - b.offsetWidth, prev = parseFloat(p.style.left);
       if (!animate || reduce.matches || isNaN(prev) || prev === L) p.style.transition = "none";
       else {
-        const fwd = L > prev, lead = ".36s cubic-bezier(.22,1,.36,1)", trail = ".55s cubic-bezier(.65,0,.35,1)";
+        const fwd = L > prev, lead = ".42s cubic-bezier(.22,1,.36,1)", trail = ".75s cubic-bezier(.65,0,.35,1)";
         p.style.transition = `left ${fwd ? trail : lead}, right ${fwd ? lead : trail}`;
       }
       Object.assign(p.style, { left: L + "px", right: R + "px", top: b.offsetTop + "px", height: b.offsetHeight + "px" });
       box.classList.add("has-pill");
     };
     const flush = () => { queue.forEach((anim, box) => box.isConnected && place(box, anim)); queue.clear(); };
-    const add = (box, anim) => { if (!queue.size) requestAnimationFrame(flush); queue.set(box, queue.get(box) || anim); };
+    const add = (box, anim) => { if (!queue.size) Promise.resolve().then(flush); queue.set(box, queue.get(box) || anim); };
     new window.MutationObserver(ms => ms.forEach(m => {
       if (m.type === "attributes") { const box = m.target.parentElement; if (m.target.tagName === "BUTTON" && box && box.matches(SEL)) add(box, true); return; }
       m.addedNodes.forEach(n => { if (n.nodeType !== 1) return; if (n.matches(SEL)) add(n, false); n.querySelectorAll(SEL).forEach(x => add(x, false)); });
