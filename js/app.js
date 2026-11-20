@@ -144,7 +144,7 @@
       const L = b.offsetLeft, R = box.clientWidth - L - b.offsetWidth, prev = parseFloat(p.style.left);
       if (!animate || reduce.matches || isNaN(prev) || prev === L) p.style.transition = "none";
       else {
-        const fwd = L > prev, lead = ".42s cubic-bezier(.22,1,.36,1)", trail = ".75s cubic-bezier(.65,0,.35,1)";
+        const fwd = L > prev, lead = ".32s cubic-bezier(.16,1,.3,1)", trail = ".6s cubic-bezier(.8,0,.2,1) .05s";
         p.style.transition = `left ${fwd ? trail : lead}, right ${fwd ? lead : trail}`;
       }
       Object.assign(p.style, { left: L + "px", right: R + "px", top: b.offsetTop + "px", height: b.offsetHeight + "px" });
@@ -178,13 +178,31 @@
   }
 
   /* ---------------- gezinme ---------------- */
+  /* sayfa girişi: bloklar sırayla bulanıktan netleşerek gelir, başlıklar soldan açılır, çubuklar dolar */
+  const ENTER_BLOCKS = ".alert, .next-card, .card, .ccard, .sec-title, .sec-fold > summary, .empty";
+  const pageEnter = sec => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    sec.classList.remove("enter");
+    let i = 0;
+    $$(ENTER_BLOCKS, sec).forEach(el => {
+      if (el.parentElement.closest(".card, .ccard, .next-card, .alert")) return;
+      if (el.getBoundingClientRect().top > window.innerHeight + 40) return;
+      el.style.setProperty("--i", Math.min(i++, 14));
+    });
+    void sec.offsetWidth;
+    sec.classList.add("enter");
+    clearTimeout(sec._enterT);
+    sec._enterT = setTimeout(() => sec.classList.remove("enter"), 2400);
+  };
   App.setTab = function (t) {
+    const changed = App.tab !== t;
     App.tab = t;
     $$("[data-tab]").forEach(b => b.classList.toggle("active", b.dataset.tab === t));
     $$("section.page").forEach(s => s.classList.toggle("active", s.id === "page-" + t));
     try { localStorage.setItem(TAB_KEY, t); } catch (e) { }
     App.render();
     window.scrollTo({ top: 0 });
+    if (changed) pageEnter($("#page-" + t));
   };
   App.render = function () {
     const r = { ozet: renderOzet, kartlar: renderKartlar, ortak: App.renderOrtak, ayarlar: renderAyarlar }[App.tab];
