@@ -205,7 +205,9 @@
     if (changed) pageEnter($("#page-" + t));
   };
   App.render = function () {
-    const r = { ozet: renderOzet, kartlar: renderKartlar, ortak: App.renderOrtak, ayarlar: renderAyarlar }[App.tab];
+    /* giriş animasyonu sürerken gelen yeniden çizim (senkron durumu vb.) animasyonu baştan oynatmasın */
+    $$("section.page.enter").forEach(s => { s.classList.remove("enter"); clearTimeout(s._enterT); });
+    const r ={ ozet: renderOzet, kartlar: renderKartlar, ortak: App.renderOrtak, ayarlar: renderAyarlar }[App.tab];
     if (r) r();
     App.makeFocusable($("main"));
   };

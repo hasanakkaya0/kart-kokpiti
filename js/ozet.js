@@ -26,9 +26,14 @@
     </div>`;
   }
 
+  /* dövizden TL'ye aktarılan kısım TL tarafında borca eklenir, döviz tarafında borçtan düşer (aynı borç iki kez sayılmaz) */
+  const owedOf = r => r.amount + (r.convIn || 0) - (r.convOut || 0);
+  const settledOf = r => r.paid + (r.refund || 0);
+
   function payRow(it, opts) {
     const r = it.row, c = it.card;
-    const prog = r.amount > 0 ? Math.min(100, Math.round(100 * (r.paid + (r.refund || 0)) / r.amount)) : 100;
+    const owed = owedOf(r);
+    const prog = owed > 0 ? Math.min(100, Math.round(100 * settledOf(r) / owed)) : 100;
     const progCls = r.status === "late" ? "bad" : (r.rem <= K.EPS ? "ok" : (r.minGap <= K.EPS ? "ok" : ""));
     let meta;
     if (r.rem <= K.EPS) meta = `Tamamı ödendi · ${K.fmtDate(r.due)}`;
@@ -231,8 +236,8 @@
           })()}
           <div class="btnrow"><button class="btn sm" data-act="quickPay">${ic("card")} Ödeme yaptım</button><button class="btn sm ghost" data-act="openPlanner">${ic("bulb")} Elimdeki parayı dağıt</button><button class="btn sm ghost" data-act="openPayoff">${ic("flag")} Borç bitiş planı</button></div>
           ${(() => {
-            const tot = S.items.reduce((a, i) => a + (K.toTL(DB, i.row.amount, i.ccy, nowYM) || 0), 0);
-            const paid = S.items.reduce((a, i) => a + (K.toTL(DB, Math.min(i.row.paid + (i.row.refund || 0), i.row.amount), i.ccy, nowYM) || 0), 0);
+            const tot = S.items.reduce((a, i) => a + (K.toTL(DB, Math.max(0, owedOf(i.row)), i.ccy, nowYM) || 0), 0);
+            const paid = S.items.reduce((a, i) => a + (K.toTL(DB, Math.max(0, Math.min(settledOf(i.row), owedOf(i.row))), i.ccy, nowYM) || 0), 0);
             if (!(tot > 0)) return "";
             return `<div class="hero-prog"><div class="row"><span>Güncel ekstrelerde ödenen</span><span>${K.fmt(paid, "TRY", { noDec: true })} / ${K.fmt(tot, "TRY", { noDec: true })}</span></div>
               <div class="progress"><i style="width:${Math.min(100, Math.round(100 * paid / tot))}%"></i></div></div>`;
