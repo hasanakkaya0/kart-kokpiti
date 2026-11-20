@@ -128,6 +128,40 @@
   const segHtml = (id, opts, cur) => `<div class="seg" id="${id}" data-value="${esc(cur)}">${opts.map(o => `<button type="button" data-v="${esc(o[0])}" class="${o[0] === cur ? "on" : ""}">${o[1]}</button>`).join("")}</div>`;
   App.segHtml = segHtml;
 
+  /* kayan seçim vurgusu: gidilen yöndeki kenar önden, arkadaki kenar geriden gelir (esneme etkisi).
+     Sınıf değişimini izlediği için çağrı yerlerinin hiçbirine dokunmak gerekmez. */
+  {
+    const SEL = ".tabs, .bottomnav, .seg";
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const isOn = b => b.classList.contains("active") || b.classList.contains("on");
+    const queue = new Map();
+    const ro = new window.ResizeObserver(es => es.forEach(e => place(e.target, false)));
+    const place = (box, animate) => {
+      const b = [...box.children].find(x => x.tagName === "BUTTON" && isOn(x));
+      let p = box.querySelector(":scope > .spill");
+      if (!b || !b.offsetWidth) { box.classList.remove("has-pill"); return; }
+      if (!p) { p = document.createElement("span"); p.className = "spill"; p.setAttribute("aria-hidden", "true"); box.prepend(p); ro.observe(box); animate = false; }
+      const L = b.offsetLeft, R = box.clientWidth - L - b.offsetWidth, prev = parseFloat(p.style.left);
+      if (!animate || reduce.matches || isNaN(prev) || prev === L) p.style.transition = "none";
+      else {
+        const fwd = L > prev, lead = ".36s cubic-bezier(.22,1,.36,1)", trail = ".55s cubic-bezier(.65,0,.35,1)";
+        p.style.transition = `left ${fwd ? trail : lead}, right ${fwd ? lead : trail}`;
+      }
+      Object.assign(p.style, { left: L + "px", right: R + "px", top: b.offsetTop + "px", height: b.offsetHeight + "px" });
+      box.classList.add("has-pill");
+    };
+    const flush = () => { queue.forEach((anim, box) => box.isConnected && place(box, anim)); queue.clear(); };
+    const add = (box, anim) => { if (!queue.size) requestAnimationFrame(flush); queue.set(box, queue.get(box) || anim); };
+    new window.MutationObserver(ms => ms.forEach(m => {
+      if (m.type === "attributes") { const box = m.target.parentElement; if (m.target.tagName === "BUTTON" && box && box.matches(SEL)) add(box, true); return; }
+      m.addedNodes.forEach(n => { if (n.nodeType !== 1) return; if (n.matches(SEL)) add(n, false); n.querySelectorAll(SEL).forEach(x => add(x, false)); });
+    })).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+    $$(SEL).forEach(x => add(x, false));
+    const rescan = () => $$(SEL).forEach(x => add(x, false));
+    if (document.fonts) document.fonts.ready.then(rescan);
+    window.addEventListener("resize", rescan);
+  }
+
   /* ---------------- tema ---------------- */
   function initTheme() {
     let t = null; try { t = localStorage.getItem(THEME_KEY); } catch (e) { }
