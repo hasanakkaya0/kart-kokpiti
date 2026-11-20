@@ -70,14 +70,20 @@
         <div><h2 style="font-size:22px">Kartlarım</h2><div class="muted" style="font-size:14px">${act.length} aktif kart${arch.length ? " · " + arch.length + " arşivde" : ""}</div></div>
         <div class="btnrow" style="margin:0">${act.length > 1 ? `<div class="seg viewseg"><button type="button" data-act="cardView" data-v="deck" class="${App.cardView !== "grid" ? "on" : ""}">Deste</button><button type="button" data-act="cardView" data-v="grid" class="${App.cardView === "grid" ? "on" : ""}">Izgara</button></div>` : ""}<button class="btn ghost" data-act="periodUpdate">${ic("cart")} Dönem içi harcamalar</button><button class="btn ghost" data-act="batchStatement">${ic("layers")} Toplu ekstre gir</button><button class="btn" data-act="addCard">+ Kart ekle</button></div>
       </div>
+      <div class="kl ${act.length > 1 && App.cardView !== "grid" ? "kl-deck" : ""}">
+      <div class="kl-cards">
       <div class="cardgrid ${act.length > 1 && App.cardView !== "grid" ? "deck" : ""}">
         ${act.map(cardTile).join("")}
         <div class="ccard add" data-act="addCard"><span class="plus">+</span>Yeni kart</div>
       </div>
       ${arch.length ? `<div style="margin-top:var(--s4)"><button class="btn sm ghost" data-act="toggleArchived">${App.showArchived ? "Arşivi gizle" : "Arşivdeki kartları göster (" + arch.length + ")"}</button></div>
         ${App.showArchived ? `<div class="cardgrid" style="margin-top:var(--s3)">${arch.map(cardTile).join("")}</div>` : ""}` : ""}
+      </div>
+      <div class="kl-inst">
       <div class="sec-title sub" id="instSec"><h2>Taksitler</h2><button class="btn sm soft" data-act="newInst">+ Taksit ekle</button></div>
       ${instHtml ? `<div class="card flat inst-list"><div class="list">${instHtml}</div></div>` : `<div class="faint" style="font-size:13px">Taksitli alışverişlerini ekle — gelecek ayların yükünde görünsün.</div>`}
+      </div>
+      </div>
     `;
   }
 
@@ -235,8 +241,8 @@
       ${insts.length ? `<div class="dtab" data-dtab="taksit">
         <div class="sec-title" style="margin-top:var(--s2)"><h2>Bu hesabın taksitleri</h2></div>${insts.map(x => `<div class="kv-line"><span>${x.kind === "stmt" ? ic("puzzle") + " " : ""}${esc(x.desc)} · ${x.count} ay · ${K.monthLabel(x.start, true)}'dan</span><span class="num">${K.fmt(x.per, x.ccy)}/ay <button class="iconbtn sm" data-act="editInst" data-id="${x.id}">${ic("edit")}</button></span></div>`).join("")}
       </div>` : ""}
-    `, { wide: true });
-    if (App.tab === "kartlar" && window.matchMedia("(min-width:1100px)").matches) App.setSideDetail(c.id);
+    `, { wide: true, keepSide: true });
+    App.setSideDetail(App.tab === "kartlar" && window.matchMedia("(min-width:1100px)").matches ? c.id : null);
     /* sekmeler: son seçilen hatırlanır; gelecek boşsa ekstrelere düşer */
     {
       const m = $("#modal"), avail = $$("[data-dtab-btn]", m).map(b => b.dataset.dtabBtn);

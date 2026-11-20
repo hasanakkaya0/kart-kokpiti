@@ -68,9 +68,11 @@
     $$("#page-kartlar .ccard[data-card]").forEach(x => x.classList.toggle("sel", on && x.dataset.card === cardId));
   };
   App.modal = function (html, opts) {
-    if (App.kdCard) App.setSideDetail(null);
+    if (App.kdCard && !(opts && opts.keepSide)) App.setSideDetail(null);
     const m = $("#modal");
-    m.className = "modal" + (opts && opts.wide ? " wide" : "");
+    /* panel zaten açıksa (ör. destede başka karta geçiş) yeniden kayarak girmesin, yalnızca içerik değişsin */
+    const swap = $("#modalBg").classList.contains("open");
+    m.className = "modal" + (opts && opts.wide ? " wide" : "") + (swap ? " swap" : "");
     m.innerHTML = html;
     App.makeFocusable(m);
     App.lastFocus = App.lastFocus || document.activeElement;
