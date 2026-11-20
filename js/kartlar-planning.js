@@ -26,28 +26,60 @@
       ${SN.total > 0.5 ? `<div class="note box" style="margin-top:var(--s3);display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label class="check"><input type="checkbox" id="poShared"> <span>${esc(SN.who.join(", "))}'den alacağım <b>${K.fmt(SN.total)}</b> gelince borca yatır:</span></label>
         <select id="poSharedK" style="width:auto">${[0, 1, 2, 3, 4, 5, 6].map(k => `<option value="${k}" ${k === 1 ? "selected" : ""}>${k === 0 ? "şimdi" : K.monthLabel(K.ymAdd(baseYM, k)) + " ekstresinde"}</option>`).join("")}</select></div>` : ""}
       <div id="poOut"></div>
-      <div class="note" style="margin-top:var(--s3)">Varsayımlar: yeni harcama yapmadığın (girilmiş dönem içi, taksit ve bekleyenler hariç), her ay önce tüm asgarilerin, sonra faizi en yüksek borcun ödendiği varsayılır. Faiz her ekstrenin dönem borcuna göre TCMB kademesinden, KKDF/BSMV dahil hesaplanır; faize faiz işlemez. Dövizler bugünkü kurla TL'ye çevrilir. Gerçek tutarlar bankanın hesabına göre biraz oynar.</div>
+      <div class="sec-title" style="margin-top:var(--s4)"><h2>Ayda biraz daha fazla ödersem?</h2></div>
+      <div class="note box" style="display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap">
+        <span>Ayda</span><input type="text" id="poPlus" inputmode="decimal" value="2000" style="width:130px"><span>₺ fazla ödersem</span>
+        <div id="poPlusOut" style="flex-basis:100%"></div>
+      </div>
+      <div class="note" style="margin-top:var(--s3)">Varsayımlar: yeni harcama yapmadığın (girilmiş dönem içi, taksit ve bekleyenler hariç), her ay önce tüm asgarilerin, sonra artan paranın seçtiğin sıraya göre (varsayılan: faizi en yüksek borç) ödendiği varsayılır. Faiz her ekstrenin dönem borcuna göre TCMB kademesinden, KKDF/BSMV dahil hesaplanır; faize faiz işlemez. Dövizler bugünkü kurla TL'ye çevrilir. Gerçek tutarlar bankanın hesabına göre biraz oynar.</div>
     `, { wide: true });
     App.attachCalc($("#poAmt"));
+    App.attachCalc($("#poPlus"));
+    let last = null;
+    const runPlus = () => {
+      const o = $("#poPlusOut"); if (!o) return;
+      if (!last || !last.R.months.length) { o.innerHTML = ""; return; }
+      if (!last.R.done) { o.innerHTML = `<span class="faint">Önce borcun bittiği bir aylık tutar gir.</span>`; return; }
+      const d = num("poPlus");
+      if (!(d > 0)) { o.innerHTML = ""; return; }
+      const P = K.simulatePayoff(DB, last.m + d, t, { extra: last.extra });
+      const months = last.R.endK - P.endK, saved = K.round2(last.R.totalInterest - P.totalInterest);
+      o.innerHTML = months > 0 || saved > K.EPS
+        ? `Borç <b>${K.monthLabel(P.endMonth)}</b>'de biter${months > 0 ? ` — <b class="ok">${months} ay erken</b>` : ""}, faiz <b>${K.fmt(P.totalInterest)}</b>${saved > K.EPS ? ` (<b class="ok">${K.fmt(saved)} daha az</b>)` : ""}.`
+        : `<span class="faint">Bu fark bitiş ayını ve faizi değiştirmiyor.</span>`;
+    };
     const run = () => {
       const m = num("poAmt");
-      if (!(m >= 0)) { $("#poOut").innerHTML = ""; return; }
+      if (!(m >= 0)) { $("#poOut").innerHTML = ""; last = null; runPlus(); return; }
       const shOn = $("#poShared") && $("#poShared").checked;
       const extra = shOn ? { [+val("poSharedK")]: SN.total } : null;
       const R = K.simulatePayoff(DB, m, t, { extra });
       const R0 = shOn ? K.simulatePayoff(DB, m, t) : null;
       const M = K.simulatePayoff(DB, 0, t, { minOnly: true });
+      last = { m, extra, R };
+      runPlus();
       if (!R.months.length) { $("#poOut").innerHTML = `<div class="empty">Borç yok 🎉</div>`; return; }
       const first = R.months[0];
       const startDebt = K.round2(first.debtEnd + first.pay);
-      const plus = K.simulatePayoff(DB, m + 2000, t, { extra });
+      const RS = K.simulatePayoff(DB, m, t, { extra, strategy: "snowball" });
+      const better = !R.done && !RS.done ? null
+        : !RS.done ? "a" : !R.done ? "s"
+        : Math.abs(R.totalInterest - RS.totalInterest) > 0.5 ? (R.totalInterest < RS.totalInterest ? "a" : "s")
+        : R.endK !== RS.endK ? (R.endK < RS.endK ? "a" : "s") : null;
+      const stratCol = (key, label, X, firstOff) => `<div${better === key ? ' style="box-shadow:inset 0 0 0 1.5px var(--ok)"' : ""}><small>${label}${better === key ? ` · <span class="ok">daha iyi</span>` : ""}</small>
+          <b class="${X.done ? "" : "bad"}">${X.done ? K.monthLabel(X.endMonth) : "bitmiyor"}</b>
+          <small>faiz ${K.fmt(X.totalInterest)}${firstOff ? ` · ilk kapanan: ${esc(firstOff.card.name)}${firstOff.ccy !== "TRY" ? " " + firstOff.ccy : ""}` : ""}</small></div>`;
+      const firstClosed = X => X.accounts.filter(a => a.paidOff != null && a.paidOff > 0).sort((a, b) => a.paidOff - b.paidOff)[0];
+      const stratHtml = `<div class="sec-title" style="margin-top:var(--s4)"><h2>Hangi sırayla ödemeli?</h2><span class="hint">asgariler ödendikten sonra artan para</span></div>
+        <div class="po-figs" style="grid-template-columns:1fr 1fr">${stratCol("a", "Önce faizi yüksek olan (çığ)", R, firstClosed(R))}${stratCol("s", "Önce küçük borç (kartopu)", RS, firstClosed(RS))}</div>
+        <div class="note" style="margin-top:var(--s2)">${better === "a" && R.done && RS.done ? `Çığ <b>${K.fmt(RS.totalInterest - R.totalInterest)}</b> daha az faiz ödetir${RS.endK > R.endK ? `, ${RS.endK - R.endK} ay erken biter` : ""}. Kartopu küçük borçları daha önce kapatıp motivasyon verir.` : better === "s" && R.done && RS.done ? `Bu borçlarda kartopu <b>${K.fmt(R.totalInterest - RS.totalInterest)}</b> daha az faiz ödetiyor${R.endK > RS.endK ? `, ${R.endK - RS.endK} ay erken bitiyor` : ""}.` : R.done && RS.done ? "İki sıra da aynı sonucu veriyor." : ""} Aşağıdaki tablo çığ sırasıyla hesaplanır.</div>`;
       const head = `<div class="po-figs">
           <div><small>Bitiş</small><b class="${R.done ? "" : "bad"}">${R.done ? K.monthLabel(R.endMonth) : "120 ayda bitmiyor"}</b><small>${R.done ? (R.endK === 0 ? "bu ay" : R.endK + " ay sonra") : ""}</small></div>
           <div><small>Toplam faiz (vergili)</small><b>${K.fmt(R.totalInterest)}</b></div>
           <div><small>Toplam ödeme</small><b>${K.fmt(R.totalPaid)}</b><small>bugünkü borç ${K.fmt(startDebt)} + bilinen yeni yük + faiz</small></div>
         </div>`;
       const warn = R.shortMonths ? `<div class="alert bad" style="margin-top:var(--s3)"><span class="ic">${ic("late")}</span><div class="grow"><b>Bu tutar ${R.shortMonths} ayda asgarileri karşılamıyor</b> (ilki ${K.monthLabel(R.months.find(x => x.short).month)}: asgariler toplamı ${K.fmt(R.months.find(x => x.short).minNeed)}). Asgarinin altında kalmak gecikme faizi, sicil kaydı ve 3 seferde kartın kapanması demek; bu tablo o durumda yanıltıcıdır.${need ? ` Hiçbir ay aksatmamak için ayda en az <b>${K.fmt(need)}</b> gerekiyor.` : ""}</div></div>` : "";
-      const cmp = (R0 ? `<div class="note box ok-box" style="margin-top:var(--s3)">Alacağın gelirse: ${R0.done && R.done && R0.endK > R.endK ? `<b>${R0.endK - R.endK} ay erken</b> biter, ` : ""}<b>${K.fmt(Math.max(0, R0.totalInterest - R.totalInterest))}</b> daha az faiz${R0.shortMonths > R.shortMonths ? `, asgarinin karşılanmadığı ay ${R0.shortMonths} → ${R.shortMonths}` : ""}.</div>` : "") + (R.done ? `<div class="note box" style="margin-top:var(--s3)">${plus.done && plus.endK < R.endK ? `Ayda <b>${K.fmt(2000)}</b> fazla ödersen <b>${R.endK - plus.endK} ay erken</b> biter, <b>${K.fmt(R.totalInterest - plus.totalInterest)}</b> daha az faiz ödersin. ` : ""}${M.done ? `Sadece asgari ödeseydin borç ${K.monthLabel(M.endMonth)}'de biterdi ve ${K.fmt(M.totalInterest)} faiz öderdin.` : ""}</div>` : "");
+      const cmp = (R0 ? `<div class="note box ok-box" style="margin-top:var(--s3)">Alacağın gelirse: ${R0.done && R.done && R0.endK > R.endK ? `<b>${R0.endK - R.endK} ay erken</b> biter, ` : ""}<b>${K.fmt(Math.max(0, R0.totalInterest - R.totalInterest))}</b> daha az faiz${R0.shortMonths > R.shortMonths ? `, asgarinin karşılanmadığı ay ${R0.shortMonths} → ${R.shortMonths}` : ""}.</div>` : "") + (R.done && M.done ? `<div class="note box" style="margin-top:var(--s3)">Sadece asgari ödeseydin borç ${K.monthLabel(M.endMonth)}'de biterdi ve ${K.fmt(M.totalInterest)} faiz öderdin.</div>` : "") + stratHtml;
       const accs = R.accounts.slice().sort((a, b) => (a.paidOff == null ? 999 : a.paidOff) - (b.paidOff == null ? 999 : b.paidOff));
       const accHtml = `<div class="sec-title" style="margin-top:var(--s4)"><h2>Kartlar ne zaman biter?</h2></div><div class="card flat" style="padding:6px 14px">${accs.map(a => `<div class="kv-line"><span><span class="dot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${cardColor(a.card)};margin-right:6px"></span><b>${esc(a.card.name)}</b> ${a.ccy !== "TRY" ? ccyPill(a.ccy) : ""}</span><span class="num">${a.paidOffMonth ? (a.paidOff === 0 ? "bu ay" : K.monthLabel(a.paidOffMonth)) : "—"} <span class="faint" style="font-size:12.5px">· faiz ${K.fmt(a.interest)}</span></span></div>`).join("")}</div>`;
       const rows = R.months.map(x => `<div class="po-row ${x.short ? "short" : ""}"><b>${x.k === 0 ? "Şimdi · " + K.MONTHS_SHORT[+x.month.slice(5) - 1] : K.monthLabel(x.month, true)}</b><span class="num">${K.fmt(x.pay)}</span><span class="num">${K.fmt(x.minNeed)}</span><span class="num ${x.interest > 0 ? "bad" : ""}">${x.interest > 0 ? K.fmt(x.interest) : "—"}</span><span class="num"><b>${K.fmt(x.debtEnd)}</b></span></div>`).join("");
@@ -60,6 +92,8 @@
     $$("[data-po]").forEach(b => b.onclick = () => { const v = Math.max(0, (num("poAmt") || 0) + (+b.dataset.po)); $("#poAmt").value = v; run(); });
     const nb = $("#poNeed"); if (nb) nb.onclick = () => { $("#poAmt").value = need; run(); };
     ["poShared", "poSharedK"].forEach(i => { const e = $("#" + i); if (e) e.addEventListener("change", run); });
+    let tp = null;
+    $("#poPlus").addEventListener("input", () => { clearTimeout(tp); tp = setTimeout(runPlus, 250); });
     run();
   }
 

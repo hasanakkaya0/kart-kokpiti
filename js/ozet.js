@@ -212,7 +212,25 @@
         <button class="btn" data-act="pay" data-card="${c.id}" data-ccy="${nextItem.ccy}">Öde</button></div>`;
     })() : "";
 
-    const payListHtml = open.length ? open.map(i => payRow(i)).join("") : `<div class="empty">${S.items.length ? "Açık ekstre yok — tüm güncel ekstreler ödendi 🎉" : "Henüz ekstre girilmemiş. Bankandan gelen son ekstrenin <b>dönem borcunu</b> gir; son ödeme tarihi ve asgari otomatik hesaplanır."}<br><button class="btn sm soft" style="margin-top:var(--s3)" data-act="quickStatement">${S.items.length ? "Yeni ekstre gir" : "İlk ekstreyi gir"}</button></div>`;
+    /* ay başı (ilk 10 gün): geçen ayın kısa özeti — ödemeler, ekstrelere giren faiz, kesilmiş borcun değişimi */
+    const recapHtml = (() => {
+      if (t.getDate() > 10 || !I.paymentsByMonth) return "";
+      const lastYM = K.ymAdd(nowYM, -1);
+      const [y, m] = lastYM.split("-").map(Number);
+      const endLast = new Date(y, m, 0), endPrev = new Date(y, m - 1, 0);
+      const P = I.paymentsByMonth(DB, [lastYM])[lastYM];
+      if (!P.n && !DB.statements.some(s => s.month === lastYM)) return "";
+      const IB = I.interestByMonth(DB, [lastYM], endLast).byMonth[lastYM];
+      const fz = IB.bank + IB.est;
+      const d = K.summary(DB, endLast).totalTL - K.summary(DB, endPrev).totalTL;
+      const dTxt = Math.abs(d) < 1 ? "borç aynı kaldı" : d < 0 ? `borç <b class="ok">${K.fmt(-d, "TRY", { noDec: true })} azaldı</b>` : `borç <b class="bad">${K.fmt(d, "TRY", { noDec: true })} arttı</b>`;
+      return `<div class="recap-card" style="order:0"><div class="k">${K.MONTHS[m - 1]} özeti</div>
+        <div class="t"><b>${P.n}</b> ödeme · <b>${K.fmt(P.tl, "TRY", { noDec: true })}</b> ödendi</div>
+        <div class="m">${fz > K.EPS ? `ekstrelere <b>${K.fmt(fz, "TRY", { noDec: true })}</b> faiz girdi${IB.bank > K.EPS ? "" : " (tahmini)"}` : "faiz ödenmedi ✓"} · ${dTxt}</div>
+        <button class="linkbtn" data-act="goReports">Raporlarda gör</button></div>`;
+    })();
+
+    const payListHtml =open.length ? open.map(i => payRow(i)).join("") : `<div class="empty">${S.items.length ? "Açık ekstre yok — tüm güncel ekstreler ödendi 🎉" : "Henüz ekstre girilmemiş. Bankandan gelen son ekstrenin <b>dönem borcunu</b> gir; son ödeme tarihi ve asgari otomatik hesaplanır."}<br><button class="btn sm soft" style="margin-top:var(--s3)" data-act="quickStatement">${S.items.length ? "Yeni ekstre gir" : "İlk ekstreyi gir"}</button></div>`;
     const closedHtml = closed.length ? `<details style="margin-top:var(--s2)"><summary class="faint" style="cursor:pointer;font-size:13px;padding:8px 4px">Bu dönem kapananlar (${closed.length})</summary><div class="list">${closed.map(i => payRow(i, { dim: true })).join("")}</div></details>` : "";
     const fcFold = `<details class="sec-fold" data-fold="fc" style="order:7"><summary><h2>Bu dönem ve sonraki aylar</h2><span class="hint">henüz ekstreye girmeyen harcamalar · limitten düşer</span></summary>
       <div class="card">
@@ -265,6 +283,7 @@
         ${fcFold}
       </div>
       <aside class="ov-side">
+        ${recapHtml}
         ${nextHtml ? nextHtml.replace('<div class="next-card', '<div style="order:1" class="next-card') : ""}
         <div class="stats" style="order:3">
           <div class="card"><div class="stat"><span class="k">Bu dönem ödenmesi gereken asgari</span><span class="v ${S.late.length ? "bad" : ""}">${moneyHtml(S.minDueTL)}</span><span class="s">${minCount ? minCount + " hesapta asgari eksik" : "Tüm asgariler ödendi ✓"}</span></div></div>

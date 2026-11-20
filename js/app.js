@@ -59,7 +59,16 @@
   App.toast = toast;
 
   /* ---------------- modal ---------------- */
+  /* masaüstü Kartlar: kart detayı arkayı karartmadan sağda durur, soldaki deste tıklanabilir kalır */
+  App.setSideDetail = function (cardId) {
+    const on = !!cardId;
+    App.kdCard = cardId || null;
+    $("#modalBg").classList.toggle("side", on);
+    document.body.classList.toggle("kd-open", on);
+    $$("#page-kartlar .ccard[data-card]").forEach(x => x.classList.toggle("sel", on && x.dataset.card === cardId));
+  };
   App.modal = function (html, opts) {
+    if (App.kdCard) App.setSideDetail(null);
     const m = $("#modal");
     m.className = "modal" + (opts && opts.wide ? " wide" : "");
     m.innerHTML = html;
@@ -73,6 +82,7 @@
     return m;
   };
   App.closeModal = () => {
+    if (App.kdCard) App.setSideDetail(null);
     $("#modalBg").classList.remove("open"); $("#modal").innerHTML = "";
     const lf = App.lastFocus; App.lastFocus = null;
     if (lf && document.contains(lf) && lf.focus) lf.focus({ preventScroll: true });
@@ -211,7 +221,7 @@
   App.render = function () {
     /* giriş animasyonu sürerken gelen yeniden çizim (senkron durumu vb.) animasyonu baştan oynatmasın */
     $$("section.page.enter").forEach(s => { s.classList.remove("enter"); clearTimeout(s._enterT); });
-    const r ={ ozet: renderOzet, kartlar: renderKartlar, ortak: App.renderOrtak, ayarlar: renderAyarlar }[App.tab];
+    const r = { ozet: renderOzet, kartlar: renderKartlar, ortak: App.renderOrtak, raporlar: (...a) => App.I.renderRaporlar(...a), ayarlar: renderAyarlar }[App.tab];
     if (r) r();
     App.makeFocusable($("main"));
   };
@@ -404,10 +414,12 @@
     convertFx: d => openConvert(d.card, d.ccy),
     openPayoff: () => openPayoff(),
     openPlanner: () => openPlanner(),
+    cardView: d => { App.cardView = d.v; App.render(); },
     toggleArchived: () => { App.showArchived = !App.showArchived; App.render(); },
     toggleRateMonths: () => { App.rateMonthsAll = !App.rateMonthsAll; App.render(); },
     goSettings: () => App.setTab("ayarlar"),
     goShared: () => App.setTab("ortak"),
+    goReports: () => App.setTab("raporlar"),
     fetchRates: () => { App.closeModal(); fetchRates(); },
     editGroup: d => openGroupForm(d.id),
     delPayment: d => {
@@ -438,7 +450,7 @@
 
   /* ================= klavye ================= */
   const SHORTCUTS = [
-    ["1 – 4", "Sekmeler: Özet · Kartlar · Ortak · Ayarlar", null],
+    ["1 – 5", "Sekmeler: Özet · Kartlar · Ortak · Raporlar · Ayarlar", null],
     ["O", "Ödeme yaptım", "quickPay"], ["E", "Ekstre geldi", "quickStatement"], ["T", "Toplu ekstre gir", "batchStatement"],
     ["D", "Dönem içi harcamaları güncelle", "periodUpdate"], ["B", "Bekleyen işlem ekle", "pendNew"], ["H", "Ortak harcama ekle", "quickShared"],
     ["P", "Elimdeki parayı dağıt", "openPlanner"], ["F", "Borç bitiş planı", "openPayoff"], ["K", "Kart ekle", "addCard"], ["Y", "Yedek indir", "exportJSON"], ["?", "Kısayol listesi", "showKeys"]
@@ -517,7 +529,7 @@
       }
     }
     if (typing || modalOpen || e.ctrlKey || e.metaKey || e.altKey) return;
-    if (/^[1-4]$/.test(e.key)) { e.preventDefault(); App.setTab(["ozet", "kartlar", "ortak", "ayarlar"][+e.key - 1]); return; }
+    if (/^[1-5]$/.test(e.key)) { e.preventDefault(); App.setTab(["ozet", "kartlar", "ortak", "raporlar", "ayarlar"][+e.key - 1]); return; }
     const act = KEYMAP[e.key.toLocaleLowerCase("tr-TR")];
     if (act && App.ACT[act]) { e.preventDefault(); menu.classList.remove("open"); App.ACT[act]({}, null, e); }
   }
@@ -569,7 +581,7 @@
     });
     document.addEventListener("keydown", onKey);
     let t = "ozet"; try { t = localStorage.getItem(TAB_KEY) || "ozet"; } catch (e) { }
-    App.setTab(["ozet", "kartlar", "ortak", "ayarlar"].includes(t) ? t : "ozet");
+    App.setTab(["ozet", "kartlar", "ortak", "raporlar", "ayarlar"].includes(t) ? t : "ozet");
     if (App.storageMode !== "browser") toast("Tarayıcı kaydı kapalı — çıkmadan önce yedek indir!");
     setTimeout(() => fetchRates({ auto: true }), 800);   // bu ayın eksik € / $ kuru varsa sessizce çek
   };

@@ -420,6 +420,19 @@ eq("calc harf reddi", isNaN(KT.calc("alert(1)")), true);
   eq("alacakla daha az faiz", R2.totalInterest < R.totalInterest, true);
 }
 
+/* 26b) bitiş planı stratejisi: kartopu küçük borcu önce kapatır, çığ daha az faiz öder */
+{
+  const DB = base();
+  DB.statements.push({ id: "s", cardId: "c2", ccy: "TRY", month: "2026-10", amount: 4000 });    // küçük, %3,25
+  DB.statements.push({ id: "b", cardId: "c1", ccy: "TRY", month: "2026-10", amount: 40000 });   // büyük, %3,75
+  const A = KT.simulatePayoff(DB, 6000, today), S = KT.simulatePayoff(DB, 6000, today, { strategy: "snowball" });
+  const off = (R, id) => R.accounts.find(a => a.card.id === id).paidOff;
+  eq("varsayılan çığ ile aynı", A.totalInterest, KT.simulatePayoff(DB, 6000, today, { strategy: "avalanche" }).totalInterest);
+  eq("kartopu küçük borcu çığdan önce kapatır", off(S, "c2") < off(A, "c2"), true);
+  eq("çığ faizi kartopundan fazla değil", A.totalInterest <= S.totalInterest, true);
+  eq("ikisi de biter", [A.done, S.done], [true, true]);
+}
+
 /* 27) döviz borcu TL'ye çevrildi: dolar kalanı düşer, TL borcu artar, asgari değişmez, faiz TL'ye geçer */
 {
   const DB = base();

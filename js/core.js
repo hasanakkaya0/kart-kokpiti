@@ -672,7 +672,8 @@
      Her ay "monthly" TL borca ayrılır. Ay 0 = şu anki (kesilmiş) ekstreler. Sonraki aylarda:
      ekstre = devreden + faiz (kademeye göre, vergili) + bilinen yeni yük (dönem içi, taksit, bekleyen).
      Önce tüm asgariler, artan para en yüksek faizliden (avalanche). Dövizler bugünkü kurla TL'ye çevrilir.
-     opts.minOnly: sadece asgari ödenirse (kıyas için). */
+     opts.minOnly: sadece asgari ödenirse (kıyas için).
+     opts.strategy: "avalanche" (varsayılan, artan para en yüksek faizliye) | "snowball" (artan para en küçük bakiyeye). */
   function simulatePayoff(DB, monthly, today, opts) {
     opts = opts || {};
     const t = startOfDay(today || new Date());
@@ -734,9 +735,12 @@
         const use = Math.min(bud, need); a.bal = round2(a.bal - use); a.minGap = round2(a.minGap - use); a.int = round2(Math.max(0, a.int - use));
         bud -= use; pay += use; paid.set(a, (paid.get(a) || 0) + use);
       });
-      // 2) artan para: en pahalıdan
+      // 2) artan para: çığda en pahalıdan, kartopunda en küçük bakiyeden
+      const effOf = a => rateInfo(DB, a.card, null, "TRY", cardTotNow[a.card.id]).eff;
+      const byRate = (a, b) => (effOf(b) - effOf(a)) || (b.mr - a.mr) || (a.bal - b.bal);
+      const order = opts.strategy === "snowball" ? (a, b) => (a.bal - b.bal) || byRate(a, b) : byRate;
       if (!opts.minOnly) acc.filter(a => a.bal > EPS)
-        .sort((a, b) => (rateInfo(DB, b.card, null, "TRY", cardTotNow[b.card.id]).eff - rateInfo(DB, a.card, null, "TRY", cardTotNow[a.card.id]).eff) || (b.mr - a.mr) || (a.bal - b.bal))
+        .sort(order)
         .forEach(a => {
           if (bud <= EPS) return;
           const use = Math.min(bud, a.bal); a.bal = round2(a.bal - use); a.int = round2(Math.max(0, a.int - use)); bud -= use; pay += use; paid.set(a, (paid.get(a) || 0) + use);

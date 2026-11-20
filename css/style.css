@@ -659,3 +659,58 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   .ov .stats{grid-template-columns:1fr;margin:0}
   .ov-side > .sec-fold:first-of-type{margin-top:var(--s4)}
 }
+
+/* ---------- masaüstü: pencereler sağdan açılan panel ---------- */
+@media (min-width:1100px){
+  .modal-bg{justify-content:flex-end;align-items:stretch;padding:0;background:rgba(15,19,27,.22);backdrop-filter:none}
+  .modal{max-width:540px;max-height:none;height:100%;border-radius:22px 0 0 22px;box-shadow:-18px 0 50px rgba(0,0,0,.18);animation:panel-in .34s cubic-bezier(.22,1,.36,1)}
+  .modal.wide{max-width:780px}
+  /* Kartlar'da kart detayı: arka plan karartılmaz, soldaki deste tıklanabilir kalır */
+  .modal-bg.side{background:transparent;pointer-events:none}
+  .modal-bg.side .modal{pointer-events:auto}
+  body:has(.modal-bg.side.open){overflow:auto}
+  body.kd-open main.wrap{padding-right:calc(780px + var(--s5));transition:padding .3s ease}
+}
+@keyframes panel-in{from{opacity:0;transform:translateX(48px)}}
+
+/* ---------- Kartlar: Wallet destesi ---------- */
+.ccard .fsum{display:none}
+.viewseg{min-width:150px}
+.cardgrid.deck{display:flex;flex-direction:column;max-width:460px;padding:var(--s2) 0 var(--s4)}
+.deck .ccard{isolation:isolate;margin-top:-62px;transition:transform .4s cubic-bezier(.22,1,.36,1),box-shadow .2s;box-shadow:0 -8px 22px rgba(0,0,0,.16)}
+.deck .ccard:first-child{margin-top:0}
+.deck .ccard .body{display:none}
+.deck .ccard .face{min-height:132px;border-radius:var(--radius)}
+.deck .ccard .fsum{display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:1px;flex:none}
+.deck .ccard .fsum b{font-size:15px;font-weight:750;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.deck .ccard .fsum small{font-size:11.5px;opacity:.85}
+.deck .ccard.is-late .fsum small{opacity:1;background:rgba(0,0,0,.22);padding:0 6px;border-radius:99px}
+.deck .ccard .emv{display:none}
+.deck .ccard:hover{transform:translateY(-12px)}
+.deck .ccard:hover ~ .ccard{transform:translateY(46px)}
+.deck .ccard.sel{transform:translateX(22px);box-shadow:0 -8px 22px rgba(0,0,0,.16),0 0 0 2px var(--accent)}
+.deck .ccard.sel:hover{transform:translate(22px,-12px)}
+.deck .ccard.add{margin-top:var(--s4);min-height:64px;flex-direction:row;transform:none !important}
+@media (prefers-reduced-motion:reduce){.deck .ccard{transition:none}}
+
+/* ---------- imza: masaüstünde kenar çubuğunda, dar ekranda okunur footer ---------- */
+.sig{display:none}
+footer{font-size:13px;color:var(--ink-2)}
+footer a{color:var(--accent);font-weight:600}
+@media (min-width:1100px){
+  .sig{display:flex;align-items:center;gap:10px;grid-column:1/-1;margin:0 0 var(--s2);padding:10px 12px;border-radius:14px;text-decoration:none;color:var(--ink);background:var(--glass);border:1px solid var(--glass-line);transition:border-color .15s,transform .15s}
+  .sig:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .sig-av{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:750;color:#fff;background:linear-gradient(135deg,#4C5BD4,#6B4FCF)}
+  .sig b{display:block;font-size:13.5px;font-weight:700;line-height:1.2}
+  .sig small{display:block;font-size:11.5px;color:var(--ink-2)}
+  footer{display:none}
+  .topbar .wrap{grid-template-rows:auto auto 1fr auto auto}
+  #keysBtn{grid-row:5} #themeBtn{grid-row:5}
+}
+
+/* ---------- Özet: ay başı "geçen ay" kartı ---------- */
+.recap-card{display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-radius:14px;margin-bottom:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 14%,var(--glass)),var(--glass));border:1px solid var(--glass-line)}
+.recap-card .k{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+.recap-card .t{font-size:15px}
+.recap-card .m{font-size:13.5px;color:var(--ink-2)}
+.recap-card .linkbtn{align-self:flex-start;margin-top:var(--s1);font-size:13px}

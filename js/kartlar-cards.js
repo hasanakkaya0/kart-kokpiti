@@ -31,9 +31,13 @@
     const limPct = LU && LU.limit ? Math.max(0, Math.min(100, Math.round(100 * LU.used / LU.limit))) : 0;
     const limCls = limPct >= 90 ? "bad" : limPct >= 70 ? "warn" : "";
     const initial = (c.bank || c.name || "?").trim().charAt(0).toLocaleUpperCase("tr-TR");
-    return `<div class="ccard ${c.archived ? "archived" : ""}" style="--bank:${cardColor(c)}" data-act="cardDetail" data-card="${c.id}">
+    /* destede yalnızca kartın üst şeridi görünür: borç ve son ödeme durumu oraya da yazılır */
+    const owe = accs.filter(a => a.L.debt > K.EPS).map(a => K.fmt(a.L.debt, a.ccy)).join(" + ");
+    const fsum = `<span class="fsum"><b>${owe || "Borç yok"}</b><small>${cur ? (cur.status === "late" ? "gecikmede" : cur.daysToDue === 0 ? "bugün son gün" : cur.daysToDue > 0 ? cur.daysToDue + " gün kaldı" : K.fmtDate(cur.due)) : ""}${flags.length && hotAccounts(c).length ? (cur ? " · " : "") + "faiz işliyor" : ""}</small></span>`;
+    const sel = App.kdCard === c.id && document.body.classList.contains("kd-open");
+    return `<div class="ccard ${c.archived ? "archived" : ""} ${sel ? "sel" : ""} ${cur && cur.status === "late" ? "is-late" : ""}" style="--bank:${cardColor(c)}" data-act="cardDetail" data-card="${c.id}">
       <div class="face">
-        <div class="top"><div class="namewrap"><span class="bankbadge" aria-hidden="true">${esc(initial)}</span><div><div class="n">${esc(c.name)}</div><div class="bk">${esc(c.bank || "")}${c.archived ? " · arşivde" : ""}${c.spendCard ? ' · <span class="spendtag">harcama kartı</span>' : ""}</div></div></div><span class="emv" aria-hidden="true"></span></div>
+        <div class="top"><div class="namewrap"><span class="bankbadge" aria-hidden="true">${esc(initial)}</span><div><div class="n">${esc(c.name)}</div><div class="bk">${esc(c.bank || "")}${c.archived ? " · arşivde" : ""}${c.spendCard ? ' · <span class="spendtag">harcama kartı</span>' : ""}</div></div></div>${fsum}<span class="emv" aria-hidden="true"></span></div>
         <div class="bot"><span class="digits">${c.last4 ? "•••• " + esc(c.last4) : ""}</span><span>${K.accountsOf(c).map(x => x === "TRY" ? "₺" : K.CCY_SYM[x]).join(" ")}</span></div>
       </div>
       <div class="body">
@@ -64,9 +68,9 @@
     el.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:var(--s4)">
         <div><h2 style="font-size:22px">Kartlarım</h2><div class="muted" style="font-size:14px">${act.length} aktif kart${arch.length ? " · " + arch.length + " arşivde" : ""}</div></div>
-        <div class="btnrow" style="margin:0"><button class="btn ghost" data-act="periodUpdate">${ic("cart")} Dönem içi harcamalar</button><button class="btn ghost" data-act="batchStatement">${ic("layers")} Toplu ekstre gir</button><button class="btn" data-act="addCard">+ Kart ekle</button></div>
+        <div class="btnrow" style="margin:0">${act.length > 1 ? `<div class="seg viewseg"><button type="button" data-act="cardView" data-v="deck" class="${App.cardView !== "grid" ? "on" : ""}">Deste</button><button type="button" data-act="cardView" data-v="grid" class="${App.cardView === "grid" ? "on" : ""}">Izgara</button></div>` : ""}<button class="btn ghost" data-act="periodUpdate">${ic("cart")} Dönem içi harcamalar</button><button class="btn ghost" data-act="batchStatement">${ic("layers")} Toplu ekstre gir</button><button class="btn" data-act="addCard">+ Kart ekle</button></div>
       </div>
-      <div class="cardgrid">
+      <div class="cardgrid ${act.length > 1 && App.cardView !== "grid" ? "deck" : ""}">
         ${act.map(cardTile).join("")}
         <div class="ccard add" data-act="addCard"><span class="plus">+</span>Yeni kart</div>
       </div>
@@ -232,6 +236,7 @@
         <div class="sec-title" style="margin-top:var(--s2)"><h2>Bu hesabın taksitleri</h2></div>${insts.map(x => `<div class="kv-line"><span>${x.kind === "stmt" ? ic("puzzle") + " " : ""}${esc(x.desc)} · ${x.count} ay · ${K.monthLabel(x.start, true)}'dan</span><span class="num">${K.fmt(x.per, x.ccy)}/ay <button class="iconbtn sm" data-act="editInst" data-id="${x.id}">${ic("edit")}</button></span></div>`).join("")}
       </div>` : ""}
     `, { wide: true });
+    if (App.tab === "kartlar" && window.matchMedia("(min-width:1100px)").matches) App.setSideDetail(c.id);
     /* sekmeler: son seçilen hatırlanır; gelecek boşsa ekstrelere düşer */
     {
       const m = $("#modal"), avail = $$("[data-dtab-btn]", m).map(b => b.dataset.dtabBtn);

@@ -81,7 +81,7 @@ Prepaying installments creates a credit balance that is deducted from later stat
 
 ## Keyboard
 
-When not typing in a field: `1`–`4` tabs · `O` payment · `E` statement · `T` batch statements · `D` period spending · `B` pending · `H` shared expense · `P` distribute cash · `F` payoff plan · `K` add card · `Y` backup · `?` list.
+When not typing in a field: `1`–`5` tabs · `O` payment · `E` statement · `T` batch statements · `D` period spending · `B` pending · `H` shared expense · `P` distribute cash · `F` payoff plan · `K` add card · `Y` backup · `?` list.
 In dialogs: `Enter` saves, `Esc` closes, `Tab` cycles inside the dialog.
 
 ## Development
