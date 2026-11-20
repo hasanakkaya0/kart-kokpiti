@@ -137,23 +137,19 @@
     /* gelecek aylar */
     const srcChip = { estimate: '<span class="chip soon">dönem içi</span>', inst: '<span class="chip carry">taksit</span>', statement: '<span class="chip future">girildi</span>', pending: '<span class="chip soon" style="background:var(--warn-soft);color:var(--warn)">bekleyen</span>', interest: '<span class="chip late">faiz</span>' };
     const FS = F.filter(m => m.items.length);   // sadece bir şey girilmiş aylar
-    const FSV = App.fcAll ? FS : FS.slice(0, 4);   // varsayılan: bu dönem + sonraki 3 ay
-    const fcHtml = FSV.map((m, idx) => `<div class="fc-col ${idx === 0 ? "first" : ""}">
+    const fcColHtml = (m, idx) => `<div class="fc-col ${idx === 0 ? "first" : ""}">
         <div class="fc-h"><b>${K.MONTHS[+m.month.slice(5) - 1]} ekstresi</b><span>${m.month.slice(0, 4)}</span></div>
         <div class="fc-total num">${moneyHtml(m.tl)}${m.missingRate ? "*" : ""}</div>
         <div class="fc-sub">${(m.byCcy.EUR || m.byCcy.USD) ? K.fmtMulti(m.byCcy, { noDec: true }) : (idx === 0 ? "bu dönem" : "eklenecek")}</div>
         <div class="fc-lines">${m.items.length ? m.items.map(i => `<button class="fc-line" data-act="${i.source === "pending" || i.source === "interest" ? "cardDetail" : "periodOne"}" data-card="${i.card.id}" data-ccy="${i.ccy}" data-month="${m.month}" title="${esc(i.card.name)} · kesim ${K.fmtDate(i.cut)}${i.inst ? " · taksit " + K.fmt(i.inst, i.ccy) : ""}">
             <span class="dot" style="background:${cardColor(i.card)}"></span><span class="nm">${esc(i.card.name)}${i.ccy !== "TRY" ? " " + i.ccy : ""}</span>${i.source === "estimate" && m.month !== K.nextPeriodMonth(i.card, t) ? '<span class="chip soon">girildi</span>' : (srcChip[i.source] || "")}<span class="v num">${moneyHtml(i.amount, i.ccy)}</span></button>`).join("") : ""}
         </div>
-      </div>`).join("");
+      </div>`;
 
     /* trend */
     const TL = K.spendTimeline(DB, t);
-    // ilk ekstre (eski borç dahil) diğer ayları ezmesin: çok büyükse kırık çubukla kısalt
     const maxAll = Math.max(1, ...TL.map(x => x.total));
-    const maxRest = Math.max(0, ...TL.filter(x => !x.initial).map(x => x.total));
-    const clip = maxRest > K.EPS && maxAll > maxRest * 1.6;
-    const maxT = clip ? maxRest * 1.35 : maxAll;
+    const maxT = maxAll;   // ölçek 0'dan başlar, kırpma yok: çubuk boyları değerle orantılı
     const hasFut = TL.some(x => x.period + x.future > K.EPS), hasCut = TL.some(x => x.cut > K.EPS);
     const initM = TL.filter(x => x.initial).map(x => x.month);
     const sepAt = TL.find(x => x.month > nowYM && x.cut <= K.EPS);
@@ -164,15 +160,14 @@
       if (x.period > K.EPS && (x.cut + x.future) > K.EPS) tip.push("bu dönem " + K.fmt(x.period));
       if (x.future > K.EPS && (x.cut + x.period) > K.EPS) tip.push("gelecek " + K.fmt(x.future));
       if (x.initial) tip.push("ilk ekstre · önceki borç dahil");
-      if (clip && x.total > maxT) tip.push("çubuk ölçeğe sığması için kısaltıldı");
       if (x.missingRate) tip.push("bazı dövizli tutarlar kur olmadığı için eklenmedi");
       return `<div class="b ${sepAt && sepAt.month === x.month && hasCut ? "sep" : ""}" title="${tip.join(" · ")}"><div class="bcol"><em>${x.total > 0 ? K.fmt(x.total) : ""}</em>
-        <div class="bstack${clip && x.total > maxT ? " clipped" : ""}" style="height:${x.total > 0 ? pctH(Math.min(x.total, maxT)) : "2px"}">${x.future > K.EPS ? `<i class="t3" style="flex:${x.future}"></i>` : ""}${x.period > K.EPS ? `<i class="t2" style="flex:${x.period}"></i>` : ""}${x.cut > K.EPS ? `<i class="t1" style="flex:${x.cut}"></i>` : ""}</div></div>
+        <div class="bstack" style="height:${x.total > 0 ? pctH(x.total) : "2px"}">${x.future > K.EPS ? `<i class="t3" style="flex:${x.future}"></i>` : ""}${x.period > K.EPS ? `<i class="t2" style="flex:${x.period}"></i>` : ""}${x.cut > K.EPS ? `<i class="t1" style="flex:${x.cut}"></i>` : ""}</div></div>
         <span>${K.MONTHS_SHORT[+x.month.slice(5) - 1]}${x.initial ? "*" : ""}${x.month.slice(5) === "01" || x === TL[0] ? `<small>${x.month.slice(2, 4)}</small>` : ""}</span></div>`;
     }).join("");
     const trendHtml = TL.length ? `<div class="bars">${bars}</div>
       <div class="lim-legend" style="margin-top:var(--s3)">${hasCut ? '<span><i class="t1"></i>kesildi</span>' : ""}${TL.some(x => x.period > K.EPS) ? '<span><i class="t2"></i>bu dönem</span>' : ""}${TL.some(x => x.future > K.EPS) ? '<span><i class="t3"></i>gelecek (girilen + taksit)</span>' : ""}</div>
-      ${initM.length ? `<div class="faint" style="font-size:12px;margin-top:var(--s2)">* ${initM.map(m => K.monthLabel(m)).join(", ")}: uygulamaya girilen ilk ekstre — önceki aylardan devreden borç da içinde, o yüzden yüksek görünür.${clip ? " Diğer aylar okunsun diye çubuğu kesik çizildi; tutar üstünde tam yazıyor." : ""}</div>` : ""}`
+      ${initM.length ? `<div class="faint" style="font-size:12px;margin-top:var(--s2)">* ${initM.map(m => K.monthLabel(m)).join(", ")}: uygulamaya girilen ilk ekstre — önceki aylardan devreden borç da içinde, o yüzden yüksek görünür.</div>` : ""}`
       : `<div class="empty" style="padding:14px 8px">Ekstre ya da dönem içi harcama girince aylara göre burada görünür.</div>`;
 
     /* limit */
@@ -230,25 +225,8 @@
         <button class="linkbtn" data-act="goReports">Raporlarda gör</button></div>`;
     })();
 
-    const payListHtml =open.length ? open.map(i => payRow(i)).join("") : `<div class="empty">${S.items.length ? "Açık ekstre yok — tüm güncel ekstreler ödendi 🎉" : "Henüz ekstre girilmemiş. Bankandan gelen son ekstrenin <b>dönem borcunu</b> gir; son ödeme tarihi ve asgari otomatik hesaplanır."}<br><button class="btn sm soft" style="margin-top:var(--s3)" data-act="quickStatement">${S.items.length ? "Yeni ekstre gir" : "İlk ekstreyi gir"}</button></div>`;
-    const closedHtml = closed.length ? `<details style="margin-top:var(--s2)"><summary class="faint" style="cursor:pointer;font-size:13px;padding:8px 4px">Bu dönem kapananlar (${closed.length})</summary><div class="list">${closed.map(i => payRow(i, { dim: true })).join("")}</div></details>` : "";
-    const fcFold = `<details class="sec-fold" data-fold="fc" style="order:7"><summary><h2>Bu dönem ve sonraki aylar</h2><span class="hint">henüz ekstreye girmeyen harcamalar · limitten düşer</span></summary>
-      <div class="card">
-        ${FS.length ? `<div class="fc-grid">${fcHtml}</div>${FS.length > 4 ? `<div style="margin-top:var(--s3)"><button class="btn sm ghost" data-act="fcMore">${App.fcAll ? "Daha az göster" : "+" + (FS.length - 4) + " ay daha göster"}</button></div>` : ""}` : `<div class="empty" style="padding:14px 8px">Henüz dönem içi harcama ya da taksit yok. Bankanın uygulamasına baktığında dönem içi harcamaları, taksitli bir alışveriş yaptığında taksiti ekle — burada aylara göre görünür.</div>`}
-        <div class="btnrow" style="margin-top:var(--s3)">
-          <button class="btn" data-act="periodUpdate">${ic("cart")} Dönem içi harcamaları güncelle</button>
-          <button class="btn ghost" data-act="periodOne">${ic("calendar")} Başka bir ayı güncelle</button>
-          <button class="btn ghost" data-act="newInst">+ Taksit ekle</button>
-        </div>
-        <details class="tip"><summary>ⓘ Dönem içi ve taksit nedir?</summary><div class="note"><b>Dönem içi</b> = bankanın uygulamasında gördüğün, bu dönem yaptığın ve sıradaki ekstrede ödeyeceğin harcamalar. <b>Taksit</b> = Kartlar → Taksitler'e girdiğin taksitlerin o aya düşen payı. Bankada ileri bir ay için farklı bir tutar görüyorsan satıra tıklayıp ya da "Başka bir ayı güncelle" ile o ayın tutarını yaz. İkisi de limitinden hemen düşer; güncel borcunu ödemezsen o da sıradaki ekstreye eklenir.</div></details>
-      </div>
-      </details>`;
-
-    el.innerHTML = `
-      ${alertsHtml}
-      <div class="ov">
-      <div class="ov-main">
-        <div class="card hero-main" style="order:2">
+    const heroHtml = `
+        <div class="card hero-main">
           <div class="lbl">Toplam borcun (TL karşılığı)</div>
           <div class="big">${moneyHtml(S.totalTL)}</div>
           <div class="ccys">${ccyChips}</div>
@@ -274,38 +252,172 @@
             return `<div class="hero-prog"><div class="row"><span>Güncel ekstrelerde ödenen</span><span>${K.fmt(paid, "TRY", { noDec: true })} / ${K.fmt(tot, "TRY", { noDec: true })}</span></div>
               <div class="progress"><i style="width:${Math.min(100, Math.round(100 * paid / tot))}%"></i></div></div>`;
           })()}
-        </div>
-        <div class="sec-title" style="order:4"><h2>Ödeme takvimi</h2><span class="hint">son ödeme tarihine göre</span></div>
-        <div class="card" style="order:5"><div class="list">${payListHtml}</div>
-          ${closedHtml}
-        </div>
-        <div class="detay-title" style="order:6">Detay</div>
-        ${fcFold}
-      </div>
-      <aside class="ov-side">
-        ${recapHtml}
-        ${nextHtml ? nextHtml.replace('<div class="next-card', '<div style="order:1" class="next-card') : ""}
-        <div class="stats" style="order:3">
-          <div class="card"><div class="stat"><span class="k">Bu dönem ödenmesi gereken asgari</span><span class="v ${S.late.length ? "bad" : ""}">${moneyHtml(S.minDueTL)}</span><span class="s">${minCount ? minCount + " hesapta asgari eksik" : "Tüm asgariler ödendi ✓"}</span></div></div>
-          <div class="card"><div class="stat"><span class="k">Bu dönem harcamaların (kesilmedi)</span><span class="v">${moneyHtml(upTL)}${upMiss ? "*" : ""}</span><span class="s">dönem içi + taksit + bekleyen · <button class="linkbtn" data-act="periodUpdate">güncelle</button></span></div></div>
-          ${(() => {
-            const pm = DB.settings.planMonthly;
-            if (!(pm > 0)) return `<div class="card clickable" data-act="openPayoff" style="cursor:pointer"><div class="stat"><span class="k">Borç ne zaman biter?</span><span class="v" style="font-size:18px">${ic("flag")} Planla</span><span class="s">ayda ne kadar ödeyebileceğini yaz, bitiş ayını ve toplam faizi gör</span></div></div>`;
-            const R = K.simulatePayoff(DB, pm, t);
-            return `<div class="card clickable" data-act="openPayoff" style="cursor:pointer"><div class="stat"><span class="k">Borç bitiş · ayda ${K.fmt(pm)}</span><span class="v ${R.shortMonths ? "bad" : ""}">${R.done ? K.monthLabel(R.endMonth) : "bitmiyor"}</span><span class="s">${R.shortMonths ? `⚠ ${R.shortMonths} ayda asgariler karşılanmıyor` : "toplam faiz ≈ " + K.fmt(R.totalInterest)}</span></div></div>`;
-          })()}
-          ${DB.shared.people.length || DB.shared.entries.length ? `<div class="card clickable" data-act="goShared" style="cursor:pointer"><div class="stat"><span class="k">Ortak harcama dengesi</span><span class="v ${sharedTL >= 0 ? "ok" : "info"}">${moneyHtml(Math.abs(sharedTL))}</span><span class="s">${Math.abs(sharedTL) <= 0.5 ? "Kimseyle açık hesap yok" : (sharedTL > 0 ? "alacağın var · " : "borcun var · ") + esc(sharedWho.join(", "))}</span></div></div>` : ""}
-        </div>
-        ${limHtml ? `<details class="sec-fold" data-fold="lim" style="order:8"><summary><h2>Limit</h2><span class="hint">borç + dönem içi + kalan taksitler + bekleyen</span></summary>
-          <div class="card">${limHtml}</div>
-        </details>` : ""}
-        ${TL.length ? `<details class="sec-fold" data-fold="trend" style="order:9"><summary><h2>Aylık harcama</h2><span class="hint">${hasFut ? "kesilen · bu dönem · gelecek" : "kesilen ekstreler"} · TL</span></summary>
-          <div class="card">${trendHtml}</div>
-        </details>` : ""}
-      </aside>
-      </div>
-    `;
-    /* Detay bölümlerinin açık/kapalı hali yeniden çizimlerde korunsun (varsayılan: sadece "Bu dönem" açık) */
+        </div>`;
+    const payListHtml = open.length ? open.map(i => payRow(i)).join("") : `<div class="empty">${S.items.length ? "Açık ekstre yok — tüm güncel ekstreler ödendi 🎉" : "Henüz ekstre girilmemiş. Bankandan gelen son ekstrenin <b>dönem borcunu</b> gir; son ödeme tarihi ve asgari otomatik hesaplanır."}<br><button class="btn sm soft" style="margin-top:var(--s3)" data-act="quickStatement">${S.items.length ? "Yeni ekstre gir" : "İlk ekstreyi gir"}</button></div>`;
+    const closedHtml = closed.length ? `<details style="margin-top:var(--s2)"><summary class="faint" style="cursor:pointer;font-size:13px;padding:8px 4px">Bu dönem kapananlar (${closed.length})</summary><div class="list">${closed.map(i => payRow(i, { dim: true })).join("")}</div></details>` : "";
+
+    /* ---------- seriler: ay sonu borcu (kesilmiş ekstrelerden kalan), aylık faiz ---------- */
+    const monthEnd = ym => { const [y, m] = ym.split("-").map(Number); const d = new Date(y, m, 0); return d > t ? t : d; };
+    const firstYM = DB.statements.reduce((a, s) => !a || s.month < a ? s.month : a, null) || nowYM;
+    const serMonths = [];
+    for (let m = K.ymAdd(nowYM, -23); m <= nowYM; m = K.ymAdd(m, 1)) if (m >= firstYM) serMonths.push(m);
+    const debtSer = serMonths.map(m => m === nowYM ? S.totalTL : K.summary(DB, monthEnd(m)).totalTL);
+    const last6 = serMonths.slice(-6), debt6 = debtSer.slice(-6);
+    const IR = K.interestReport(DB, t.getFullYear(), t);
+    const fzMonth = I.interestByMonth ? I.interestByMonth(DB, last6, t).byMonth : {};
+    const fz6 = last6.map(m => fzMonth[m] ? fzMonth[m].bank + fzMonth[m].est : 0);
+    const spark = vals => {
+      if (vals.length < 2) return "";
+      const mx = Math.max(...vals), mn = Math.min(0, ...vals), SW = 84, SH = 26, r = (mx - mn) || 1;
+      const pts = vals.map((v, i) => `${(i * SW / (vals.length - 1)).toFixed(1)},${(SH - 2 - (v - mn) / r * (SH - 4)).toFixed(1)}`);
+      return `<svg class="spark" viewBox="0 0 ${SW} ${SH}" preserveAspectRatio="none" aria-hidden="true"><polygon class="area" points="0,${SH} ${pts.join(" ")} ${SW},${SH}"/><polyline points="${pts.join(" ")}"/></svg>`;
+    };
+    const delta = (vals, goodDown) => {
+      if (vals.length < 2) return "";
+      const d = vals[vals.length - 1] - vals[vals.length - 2];
+      if (Math.abs(d) < 1) return `<span class="dl">geçen ayla aynı</span>`;
+      const up = d > 0, good = goodDown ? !up : up;
+      return `<span class="dl ${good ? "good" : "badd"}">${up ? "▲" : "▼"} ${K.fmt(Math.abs(d), "TRY", { noDec: true })} <small>geçen aya göre</small></span>`;
+    };
+
+    /* ---------- 1) rakam şeridi ---------- */
+    const limTot = lims.filter(l => l.limit > 0).reduce((a, l) => ({ used: a.used + Math.max(0, l.used), limit: a.limit + l.limit }), { used: 0, limit: 0 });
+    const limPctAll = limTot.limit ? Math.round(100 * limTot.used / limTot.limit) : null;
+    const kpi = (act, title, k, v, sub, right) => `<button class="kpi card" data-act="${act}" title="${title}"><span class="k">${k}</span><span class="row"><span class="v">${v}</span>${right || ""}</span><span class="s">${sub}</span></button>`;
+    const kpisHtml = `<div class="kpis">
+      ${kpi("goReports", "Raporlarda borcun seyrini gör", "Toplam borç", moneyHtml(S.totalTL), delta(debt6, true) || "kesilmiş ekstrelerden kalan", spark(debt6))}
+      ${kpi("goPayList", "Ödeme takvimine git", "Bu dönem asgari", `<span class="${S.late.length ? "bad" : ""}">${moneyHtml(S.minDueTL)}</span>`, minCount ? minCount + " hesapta asgari eksik" : "tüm asgariler ödendi ✓")}
+      ${kpi("periodUpdate", "Dönem içi harcamaları güncelle", "Bu dönem harcaman", moneyHtml(upTL) + (upMiss ? "*" : ""), "kesilmedi · dönem içi + taksit + bekleyen")}
+      ${kpi("goCards", "Kartlara git", "Limit doluluğu", limPctAll == null ? "—" : "%" + limPctAll, limPctAll == null ? "limit girilmemiş" : `<span class="mini-prog"><i class="${limPctAll >= 90 ? "bad" : limPctAll >= 70 ? "warn" : ""}" style="width:${Math.min(100, limPctAll)}%"></i></span>${K.fmt(limTot.limit - limTot.used, "TRY", { noDec: true })} kullanılabilir`)}
+      ${kpi("goReports", "Raporlarda aylık faizi gör", t.getFullYear() + " faizi", `<span class="${IR.total + IR.accruing > K.EPS ? "bad" : "ok"}">${moneyHtml(IR.total + IR.accruing)}</span>`, IR.accruing > K.EPS ? "işleyen " + K.fmt(IR.accruing, "TRY", { noDec: true }) + " dahil" : "ekstrelere giren", spark(fz6))}
+    </div>`;
+
+    /* ---------- kutular ---------- */
+    const wh = (title, hint, go) => `<div class="wh"><h3>${title}</h3>${hint ? `<span class="hint">${hint}</span>` : ""}${go ? `<button class="linkbtn go" data-act="${go[0]}">${go[1]} →</button>` : ""}</div>`;
+    const W = {};
+    W.hero = { size: "w8", name: "Toplam borç", html: heroHtml };
+    if (nextHtml) W.next = { size: "w4", name: "Sıradaki iş", html: nextHtml };
+    W.pay = { size: "w8", name: "Ödeme takvimi", html: `<div class="card" id="payList">${wh("Ödeme takvimi", "son ödeme tarihine göre")}<div class="list">${payListHtml}</div>${closedHtml}</div>` };
+
+    /* 8) canlı faiz sayacı */
+    let fzBase = 0, fzDay = 0;
+    S.open.forEach(i => {
+      const A = i.accr; if (!(A && A.full > K.EPS) || i.row.rem <= K.EPS) return;
+      const rt = K.toTL(DB, 1, i.ccy, nowYM) || 0;
+      fzBase += A.sofar * rt;
+      fzDay += (A.full - A.sofar) / Math.max(1, K.dayDiff(t, new Date(A.nextCut))) * rt;
+    });
+    W.faiz = { size: "w4", name: "İşleyen faiz", html: `<div class="card clickable" data-act="goReports" title="Raporlarda aylık faizi gör">${wh("Şu an işleyen faiz", "canlı")}
+      ${fzDay > K.EPS ? `<div class="fz-num" data-base="${fzBase}" data-day="${fzDay}">${K.fmt(fzBase)}</div><div class="fz-sub">günde ≈ <b>${K.fmt(fzDay)}</b> · ödemediğin her saniye artıyor</div>`
+        : `<div class="fz-num ok">${K.fmt(0)}</div><div class="fz-sub">Şu an faiz işleyen hesap yok ✓</div>`}
+      <div class="fz-sub faint">${t.getFullYear()} yılında ekstrelere giren: ${K.fmt(IR.total)}</div></div>` };
+
+    /* 6) mini ay takvimi */
+    {
+      const y = t.getFullYear(), mo = t.getMonth(), nd = new Date(y, mo + 1, 0).getDate(), lead = (new Date(y, mo, 1).getDay() + 6) % 7;
+      const ev = {}; const add = (d, e) => { (ev[d] = ev[d] || []).push(e); };
+      activeCards().forEach(c => {
+        add(Math.min(c.cutDay, nd), { c, type: "cut" });
+        const rows = S.items.filter(i => i.card.id === c.id && i.row.due.getFullYear() === y && i.row.due.getMonth() === mo);
+        if (rows.length) add(rows[0].row.due.getDate(), { c, type: "due", done: rows.every(i => i.row.rem <= K.EPS) });
+        else add(Math.min(c.dueDay, nd), { c, type: "due" });
+      });
+      let cells = ["Pt", "Sa", "Ça", "Pe", "Cu", "Ct", "Pz"].map(d => `<span class="dh">${d}</span>`).join("") + "<span></span>".repeat(lead);
+      for (let d = 1; d <= nd; d++) {
+        const es = ev[d] || [];
+        const due = es.find(e => e.type === "due");
+        const tip = es.map(e => e.c.name + (e.type === "cut" ? " · ekstre kesimi" : e.done ? " · son ödeme (ödendi)" : " · son ödeme")).join("\n");
+        cells += `<button type="button" class="d ${es.length ? "ev" : ""} ${d === t.getDate() ? "today" : d < t.getDate() ? "past" : ""}" ${es.length ? `data-act="cardDetail" data-card="${(due || es[0]).c.id}" title="${esc(tip)}"` : `tabindex="-1"`}>${d}<span class="dots">${es.slice(0, 4).map(e => `<i class="${e.type}${e.done ? " done" : ""}" style="${e.type === "cut" ? "color" : "background"}:${cardColor(e.c)}"></i>`).join("")}</span></button>`;
+      }
+      W.cal = { size: "w4", name: "Bu ayın takvimi", html: `<div class="card">${wh(K.MONTHS[mo] + " " + y, "● son ödeme · ○ kesim")}<div class="mcal">${cells}</div></div>` };
+    }
+
+    /* 7) önümüzdeki 6 ayın nakit ihtiyacı (ekstreye girecek tutarlar), tıklanan ayın dökümü altta */
+    {
+      const F6 = FS.slice(0, 6);
+      const sel = F6.find(m => m.month === App.fcSel) || F6[0];
+      const mx = Math.max(1, ...F6.map(m => m.tl));
+      const bars = F6.map((m, idx) => {
+        const byCard = new Map();
+        m.items.forEach(i => byCard.set(i.card.id, { c: i.card, v: (byCard.get(i.card.id) || { v: 0 }).v + (K.toTL(DB, i.amount, i.ccy, m.month) || 0) }));
+        const segs = [...byCard.values()].filter(x => x.v > 0.5);
+        return `<button type="button" class="cbar ${m === sel ? "on" : ""}" data-act="fcSel" data-month="${m.month}" title="${K.monthLabel(m.month)}: ${K.fmt(m.tl)}${segs.map(x => "\n" + esc(x.c.name) + " " + K.fmt(x.v)).join("")}">
+          <span class="col"><em>${K.fmt(m.tl, "TRY", { noDec: true })}</em><span class="stk" style="height:${Math.max(1.5, 100 * m.tl / mx).toFixed(2)}%">${segs.map(x => `<i style="flex:${x.v};background:${cardColor(x.c)}"></i>`).join("")}</span></span>
+          <span class="ml">${K.MONTHS_SHORT[+m.month.slice(5) - 1]}${idx === 0 ? " <small>bu dönem</small>" : ""}</span></button>`;
+      }).join("");
+      W.cash = { size: "w8", name: "Önümüzdeki 6 ay", html: `<div class="card">${wh("Önümüzdeki 6 ay", "ekstrelere girecek tutarlar · aya tıkla, dökümü aşağıda", ["periodUpdate", "Dönem içini güncelle"])}
+        ${F6.length ? `<div class="cbars">${bars}</div><div class="fc-grid one">${fcColHtml(sel, F6.indexOf(sel))}</div>` : `<div class="empty" style="padding:14px 8px">Henüz dönem içi harcama ya da taksit yok. Bankanın uygulamasındaki dönem içi harcamaları ya da taksitlerini ekle — burada aylara göre görünür.</div>`}
+        <div class="btnrow" style="margin-top:var(--s3)"><button class="btn sm ghost" data-act="periodOne">${ic("calendar")} Başka bir ayı güncelle</button><button class="btn sm ghost" data-act="newInst">+ Taksit ekle</button></div></div>` };
+    }
+
+    /* 9) borç bitiş ilerlemesi: en yüksek ay sonu borcundan bugüne kapatılan kısım */
+    {
+      /* uygulamaya girilen ilk ekstreden bu yana yapılan gerçek ödemeler (çevirme/iade hariç) / (ödenen + kalan) */
+      const payM = [];
+      for (let m = firstYM; m <= nowYM; m = K.ymAdd(m, 1)) payM.push(m);
+      const PB = I.paymentsByMonth ? I.paymentsByMonth(DB, payM) : {};
+      const paidAll = Object.values(PB).reduce((a, x) => a + x.tl, 0);
+      const pct = paidAll + S.totalTL > 0 ? Math.round(100 * paidAll / (paidAll + S.totalTL)) : 0;
+      const pm = DB.settings.planMonthly, R = pm > 0 ? K.simulatePayoff(DB, pm, t) : null;
+      W.bitis = { size: "w4", name: "Borç bitiş", html: `<div class="card clickable" data-act="openPayoff" title="Borç bitiş planını aç">${wh("Borç bitişi", R ? "ayda " + K.fmt(pm, "TRY", { noDec: true }) : "")}
+        <div class="bt-end">${R ? (R.done ? K.monthLabel(R.endMonth) : "bitmiyor") : ic("flag") + " Planla"}</div>
+        <div class="progress ok" style="margin:var(--s2) 0 var(--s1)"><i style="width:${pct}%"></i></div>
+        <div class="fz-sub">${S.totalTL > K.EPS ? `Şimdiye kadar <b>${K.fmt(paidAll, "TRY", { noDec: true })}</b> ödedin, <b>${K.fmt(S.totalTL, "TRY", { noDec: true })}</b> kaldı · %${pct}` : "Borç yok 🎉"}</div>
+        <div class="fz-sub faint">${R ? (R.shortMonths ? `⚠ ${R.shortMonths} ayda asgariler karşılanmıyor` : "toplam faiz ≈ " + K.fmt(R.totalInterest)) : "ayda ne kadar ödeyebileceğini yaz"}</div></div>` };
+    }
+
+    /* 4) borç dağılımı halkası */
+    {
+      const byCard = new Map();
+      S.open.forEach(i => { const v = K.toTL(DB, i.row.rem, i.ccy, nowYM) || 0; if (v > 0.5) byCard.set(i.card.id, { c: i.card, v: (byCard.get(i.card.id) || { v: 0 }).v + v }); });
+      const parts = [...byCard.values()].sort((a, b) => b.v - a.v), tot = parts.reduce((a, x) => a + x.v, 0);
+      let acc = 0;
+      const grad = parts.map(x => { const a0 = acc; acc += 100 * x.v / tot; return `${cardColor(x.c)} ${a0.toFixed(2)}% ${acc.toFixed(2)}%`; }).join(",");
+      W.dagilim = { size: "w4", name: "Borç dağılımı", html: `<div class="card">${wh("Borç dağılımı", "kartlara göre · TL")}
+        ${parts.length ? `<div class="donut-wrap"><span class="ringwrap big"><span class="ring" style="background:conic-gradient(${grad})"></span><b>${K.fmt(tot, "TRY", { noDec: true })}</b></span>
+          <div class="legend">${parts.map(x => `<button type="button" class="lg" data-act="cardDetail" data-card="${x.c.id}" title="${esc(x.c.name)}: ${K.fmt(x.v)}"><i style="background:${cardColor(x.c)}"></i><span>${esc(x.c.name)}</span><b>%${Math.round(100 * x.v / tot)}</b></button>`).join("")}</div></div>`
+          : `<div class="w-empty">${ic("check")} Açık borç yok</div>`}</div>` };
+    }
+
+    /* 5) limit göstergeleri (ayrıntı katlı) */
+    W.limit = { size: "w4", name: "Limitler", html: `<div class="card">${wh("Limitler", "doluluk", ["goCards", "Kartlar"])}
+      ${lims.length ? `<div class="gauges">${lims.map(l => {
+        const p = l.limit ? Math.max(0, Math.round(100 * l.used / l.limit)) : 0;
+        const col = p >= 90 ? "var(--bad)" : p >= 70 ? "var(--warn)" : "var(--accent)";
+        return `<button type="button" class="gauge" ${l.kind === "card" ? `data-act="cardDetail" data-card="${l.id}"` : `data-act="goCards"`} title="${esc(l.name)}: ${l.limit ? K.fmt(l.avail, "TRY", { noDec: true }) + " kullanılabilir / limit " + K.fmt(l.limit, "TRY", { noDec: true }) : "limit girilmemiş"}"><span class="ringwrap"><span class="ring" style="background:conic-gradient(${col} ${Math.min(100, p)}%,var(--surface-2) 0)"></span><b>${l.limit ? "%" + p : "—"}</b></span><span class="gn">${esc(l.name)}</span><small>${l.limit ? K.fmt(l.avail, "TRY", { noDec: true }) : "limit yok"}</small></button>`;
+      }).join("")}</div>
+      <details class="wdetails" data-fold="lim"><summary>Ayrıntılar</summary>${limHtml}</details>` : `<div class="w-empty">Limit girilmemiş</div>`}</div>` };
+
+    W.trend = { size: "w8", name: "Aylık harcama", html: `<div class="card">${wh("Aylık harcama", (hasFut ? "kesilen · bu dönem · gelecek" : "kesilen ekstreler") + " · TL · ölçek 0'dan", ["goReports", "Raporlar"])}${trendHtml}</div>` };
+
+    /* ---------- 3) sıra / gizleme (bu cihaza özel) ---------- */
+    const cfg = dashCfg();
+    const order = cfg.order.filter(id => W[id]).concat(DASH_DEFAULT.filter(id => !cfg.order.includes(id)));
+    const hidden = cfg.hidden.filter(id => W[id]);
+    const editing = !!App.dashEdit;
+    const tools = id => `<span class="wtools"><span class="wgrip" title="Sürükle">⠿</span><button type="button" data-act="dashMove" data-w="${id}" data-dir="-1" title="Yukarı" aria-label="Yukarı taşı">↑</button><button type="button" data-act="dashMove" data-w="${id}" data-dir="1" title="Aşağı" aria-label="Aşağı taşı">↓</button><button type="button" data-act="dashHide" data-w="${id}">Gizle</button></span>`;
+    const bento = order.filter(id => !hidden.includes(id)).map(id => `<section class="wdg ${W[id].size}" data-w="${id}" ${editing ? `draggable="true"` : ""}>${editing ? tools(id) : ""}${W[id].html}</section>`).join("");
+    const dashBar = `<div class="dash-bar">${editing
+      ? `<span class="hint">Kutuları sürükle ya da ↑↓ ile taşı, istemediğini gizle.</span>${hidden.map(id => `<button class="chip-btn" data-act="dashShow" data-w="${id}">+ ${W[id].name}</button>`).join("")}<span class="grow"></span><button class="btn sm ghost" data-act="dashReset">Varsayılana dön</button><button class="btn sm" data-act="dashEdit">Bitti</button>`
+      : `<span class="grow"></span><button class="btn sm ghost" data-act="dashEdit">${ic("edit")} Düzenle</button>`}</div>`;
+
+    el.innerHTML = `${alertsHtml}${recapHtml}${kpisHtml}${dashBar}<div class="bento ${editing ? "editing" : ""}">${bento}</div>`;
+
+    /* canlı faiz sayacı: saniyede bir, günün geçen kısmı kadar artar */
+    clearInterval(App._fzTimer);
+    const fzEl = el.querySelector(".fz-num[data-day]");
+    if (fzEl) {
+      const base = +fzEl.dataset.base, day = +fzEl.dataset.day;
+      const tick = () => {
+        if (!document.contains(fzEl)) { clearInterval(App._fzTimer); return; }
+        const n = new Date(), frac = (n - new Date(n.getFullYear(), n.getMonth(), n.getDate())) / 864e5;
+        const s4 = (base + day * frac).toLocaleString("tr-TR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+        fzEl.innerHTML = `₺${s4.slice(0, -2)}<span class="cents">${s4.slice(-2)}</span>`;
+      };
+      tick(); App._fzTimer = setInterval(tick, 1000);
+    }
+    if (editing) bindDashDrag(el.querySelector(".bento"));
+
     /* ödeme / iade sonrası ilgili satırı kısa süre vurgula */
     if (App.flash && Date.now() - App.flash.t < 4000) {
       const sel = `[data-card="${App.flash.card}"][data-ccy="${App.flash.ccy}"]`;
@@ -313,12 +425,51 @@
       if (row) { row.classList.add("flash"); try { row.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch (e) { } }
     }
     App.flash = null;
-    if (!App.fold) { const wide = window.matchMedia("(min-width:1280px)").matches; App.fold = { fc: true, lim: wide, trend: wide }; }
+    App.fold = App.fold || {};
     $$("details[data-fold]", el).forEach(d => {
       d.open = !!App.fold[d.dataset.fold];
       d.addEventListener("toggle", () => { App.fold[d.dataset.fold] = d.open; });
     });
   }
 
+  /* ---------- dashboard düzeni: sıra + gizlenenler, localStorage (cihaza özel) ---------- */
+  const DASH_KEY = "kartTakip_dash";
+  const DASH_DEFAULT = ["hero", "next", "pay", "faiz", "cal", "cash", "bitis", "dagilim", "limit", "trend"];
+  function dashCfg() {
+    let c = null; try { c = JSON.parse(localStorage.getItem(DASH_KEY)); } catch (e) { }
+    return { order: (c && Array.isArray(c.order)) ? c.order : DASH_DEFAULT.slice(), hidden: (c && Array.isArray(c.hidden)) ? c.hidden : [] };
+  }
+  function dashSave(c) { try { localStorage.setItem(DASH_KEY, JSON.stringify(c)); } catch (e) { } }
+  function bindDashDrag(box) {
+    let drag = null;
+    box.addEventListener("dragstart", e => { drag = e.target.closest(".wdg"); if (!drag) return; drag.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", drag.dataset.w); } catch (x) { } });
+    box.addEventListener("dragover", e => {
+      if (!drag) return; e.preventDefault();
+      const over = e.target.closest(".wdg"); if (!over || over === drag) return;
+      const r = over.getBoundingClientRect();
+      const before = (e.clientY - r.top) / r.height + (e.clientX - r.left) / r.width < 1;
+      box.insertBefore(drag, before ? over : over.nextSibling);
+    });
+    box.addEventListener("dragend", () => {
+      if (!drag) return; drag.classList.remove("dragging"); drag = null;
+      const c = dashCfg(); const vis = $$(".wdg", box).map(x => x.dataset.w);
+      c.order = vis.concat(c.order.filter(id => !vis.includes(id))); dashSave(c);
+    });
+  }
+  Object.assign(App.ACT, {
+    dashEdit: () => { App.dashEdit = !App.dashEdit; App.render(); },
+    dashHide: d => { const c = dashCfg(); if (!c.hidden.includes(d.w)) c.hidden.push(d.w); dashSave(c); App.render(); },
+    dashShow: d => { const c = dashCfg(); c.hidden = c.hidden.filter(x => x !== d.w); dashSave(c); App.render(); },
+    dashReset: () => { dashSave({ order: DASH_DEFAULT.slice(), hidden: [] }); App.render(); },
+    dashMove: d => {
+      const c = dashCfg(), vis = $$("#page-ozet .wdg").map(x => x.dataset.w);
+      const i = vis.indexOf(d.w), j = i + (+d.dir); if (i < 0 || j < 0 || j >= vis.length) return;
+      [vis[i], vis[j]] = [vis[j], vis[i]];
+      c.order = vis.concat(c.order.filter(id => !vis.includes(id))); dashSave(c); App.render();
+    },
+    fcSel: d => { App.fcSel = d.month; App.render(); },
+    goPayList: () => { const p = $("#payList"); if (p) p.scrollIntoView({ behavior: "smooth", block: "start" }); },
+    goCards: () => App.setTab("kartlar"),
+  });
   Object.assign(I, { welcomeHtml, payRow, renderOzet });
 })();
