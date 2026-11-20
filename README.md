@@ -53,10 +53,11 @@ js/ozet.js          Overview screen
 js/kartlar-cards.js     Card tiles, card detail, add/edit/delete card
 js/kartlar-forms.js     Payment / statement / period / pending / installment dialogs
 js/kartlar-planning.js  Payoff plan, cash distribution
+js/raporlar.js      Reports: debt trend, monthly interest, payment history
 js/ayarlar.js       Settings, exchange-rate fetching, shared-limit groups
 js/shared.js        Shared expenses
 js/io.js            import / export (Excel, JSON, legacy data), sample data
-tests/core.test.js  node tests/core.test.js  -> 140 tests
+tests/core.test.js  node tests/core.test.js  -> 144 tests
 eslint.config.mjs   npx --yes eslint js  -> development lint (not needed to run the app)
 ```
 
