@@ -212,11 +212,25 @@
         <button class="btn" data-act="pay" data-card="${c.id}" data-ccy="${nextItem.ccy}">Öde</button></div>`;
     })() : "";
 
+    const payListHtml = open.length ? open.map(i => payRow(i)).join("") : `<div class="empty">${S.items.length ? "Açık ekstre yok — tüm güncel ekstreler ödendi 🎉" : "Henüz ekstre girilmemiş. Bankandan gelen son ekstrenin <b>dönem borcunu</b> gir; son ödeme tarihi ve asgari otomatik hesaplanır."}<br><button class="btn sm soft" style="margin-top:var(--s3)" data-act="quickStatement">${S.items.length ? "Yeni ekstre gir" : "İlk ekstreyi gir"}</button></div>`;
+    const closedHtml = closed.length ? `<details style="margin-top:var(--s2)"><summary class="faint" style="cursor:pointer;font-size:13px;padding:8px 4px">Bu dönem kapananlar (${closed.length})</summary><div class="list">${closed.map(i => payRow(i, { dim: true })).join("")}</div></details>` : "";
+    const fcFold = `<details class="sec-fold" data-fold="fc" style="order:7"><summary><h2>Bu dönem ve sonraki aylar</h2><span class="hint">henüz ekstreye girmeyen harcamalar · limitten düşer</span></summary>
+      <div class="card">
+        ${FS.length ? `<div class="fc-grid">${fcHtml}</div>${FS.length > 4 ? `<div style="margin-top:var(--s3)"><button class="btn sm ghost" data-act="fcMore">${App.fcAll ? "Daha az göster" : "+" + (FS.length - 4) + " ay daha göster"}</button></div>` : ""}` : `<div class="empty" style="padding:14px 8px">Henüz dönem içi harcama ya da taksit yok. Bankanın uygulamasına baktığında dönem içi harcamaları, taksitli bir alışveriş yaptığında taksiti ekle — burada aylara göre görünür.</div>`}
+        <div class="btnrow" style="margin-top:var(--s3)">
+          <button class="btn" data-act="periodUpdate">${ic("cart")} Dönem içi harcamaları güncelle</button>
+          <button class="btn ghost" data-act="periodOne">${ic("calendar")} Başka bir ayı güncelle</button>
+          <button class="btn ghost" data-act="newInst">+ Taksit ekle</button>
+        </div>
+        <details class="tip"><summary>ⓘ Dönem içi ve taksit nedir?</summary><div class="note"><b>Dönem içi</b> = bankanın uygulamasında gördüğün, bu dönem yaptığın ve sıradaki ekstrede ödeyeceğin harcamalar. <b>Taksit</b> = Kartlar → Taksitler'e girdiğin taksitlerin o aya düşen payı. Bankada ileri bir ay için farklı bir tutar görüyorsan satıra tıklayıp ya da "Başka bir ayı güncelle" ile o ayın tutarını yaz. İkisi de limitinden hemen düşer; güncel borcunu ödemezsen o da sıradaki ekstreye eklenir.</div></details>
+      </div>
+      </details>`;
+
     el.innerHTML = `
       ${alertsHtml}
-      ${nextHtml}
-      <div class="hero">
-        <div class="card hero-main">
+      <div class="ov">
+      <div class="ov-main">
+        <div class="card hero-main" style="order:2">
           <div class="lbl">Toplam borcun (TL karşılığı)</div>
           <div class="big">${moneyHtml(S.totalTL)}</div>
           <div class="ccys">${ccyChips}</div>
@@ -243,7 +257,16 @@
               <div class="progress"><i style="width:${Math.min(100, Math.round(100 * paid / tot))}%"></i></div></div>`;
           })()}
         </div>
-        <div class="stats">
+        <div class="sec-title" style="order:4"><h2>Ödeme takvimi</h2><span class="hint">son ödeme tarihine göre</span></div>
+        <div class="card" style="order:5"><div class="list">${payListHtml}</div>
+          ${closedHtml}
+        </div>
+        <div class="detay-title" style="order:6">Detay</div>
+        ${fcFold}
+      </div>
+      <aside class="ov-side">
+        ${nextHtml ? nextHtml.replace('<div class="next-card', '<div style="order:1" class="next-card') : ""}
+        <div class="stats" style="order:3">
           <div class="card"><div class="stat"><span class="k">Bu dönem ödenmesi gereken asgari</span><span class="v ${S.late.length ? "bad" : ""}">${moneyHtml(S.minDueTL)}</span><span class="s">${minCount ? minCount + " hesapta asgari eksik" : "Tüm asgariler ödendi ✓"}</span></div></div>
           <div class="card"><div class="stat"><span class="k">Bu dönem harcamaların (kesilmedi)</span><span class="v">${moneyHtml(upTL)}${upMiss ? "*" : ""}</span><span class="s">dönem içi + taksit + bekleyen · <button class="linkbtn" data-act="periodUpdate">güncelle</button></span></div></div>
           ${(() => {
@@ -254,34 +277,14 @@
           })()}
           ${DB.shared.people.length || DB.shared.entries.length ? `<div class="card clickable" data-act="goShared" style="cursor:pointer"><div class="stat"><span class="k">Ortak harcama dengesi</span><span class="v ${sharedTL >= 0 ? "ok" : "info"}">${moneyHtml(Math.abs(sharedTL))}</span><span class="s">${Math.abs(sharedTL) <= 0.5 ? "Kimseyle açık hesap yok" : (sharedTL > 0 ? "alacağın var · " : "borcun var · ") + esc(sharedWho.join(", "))}</span></div></div>` : ""}
         </div>
-      </div>
-
-      <div class="sec-title"><h2>Ödeme takvimi</h2><span class="hint">son ödeme tarihine göre</span></div>
-      <div class="card"><div class="list">${open.length ? open.map(i => payRow(i)).join("") : `<div class="empty">${S.items.length ? "Açık ekstre yok — tüm güncel ekstreler ödendi 🎉" : "Henüz ekstre girilmemiş. Bankandan gelen son ekstrenin <b>dönem borcunu</b> gir; son ödeme tarihi ve asgari otomatik hesaplanır."}<br><button class="btn sm soft" style="margin-top:var(--s3)" data-act="quickStatement">${S.items.length ? "Yeni ekstre gir" : "İlk ekstreyi gir"}</button></div>`}</div>
-        ${closed.length ? `<details style="margin-top:var(--s2)"><summary class="faint" style="cursor:pointer;font-size:13px;padding:8px 4px">Bu dönem kapananlar (${closed.length})</summary><div class="list">${closed.map(i => payRow(i, { dim: true })).join("")}</div></details>` : ""}
-      </div>
-
-      <div class="detay-title">Detay</div>
-      <details class="sec-fold" data-fold="fc"><summary><h2>Bu dönem ve sonraki aylar</h2><span class="hint">henüz ekstreye girmeyen harcamalar · limitten düşer</span></summary>
-      <div class="card">
-        ${FS.length ? `<div class="fc-grid">${fcHtml}</div>${FS.length > 4 ? `<div style="margin-top:var(--s3)"><button class="btn sm ghost" data-act="fcMore">${App.fcAll ? "Daha az göster" : "+" + (FS.length - 4) + " ay daha göster"}</button></div>` : ""}` : `<div class="empty" style="padding:14px 8px">Henüz dönem içi harcama ya da taksit yok. Bankanın uygulamasına baktığında dönem içi harcamaları, taksitli bir alışveriş yaptığında taksiti ekle — burada aylara göre görünür.</div>`}
-        <div class="btnrow" style="margin-top:var(--s3)">
-          <button class="btn" data-act="periodUpdate">${ic("cart")} Dönem içi harcamaları güncelle</button>
-          <button class="btn ghost" data-act="periodOne">${ic("calendar")} Başka bir ayı güncelle</button>
-          <button class="btn ghost" data-act="newInst">+ Taksit ekle</button>
-        </div>
-        <details class="tip"><summary>ⓘ Dönem içi ve taksit nedir?</summary><div class="note"><b>Dönem içi</b> = bankanın uygulamasında gördüğün, bu dönem yaptığın ve sıradaki ekstrede ödeyeceğin harcamalar. <b>Taksit</b> = Kartlar → Taksitler'e girdiğin taksitlerin o aya düşen payı. Bankada ileri bir ay için farklı bir tutar görüyorsan satıra tıklayıp ya da "Başka bir ayı güncelle" ile o ayın tutarını yaz. İkisi de limitinden hemen düşer; güncel borcunu ödemezsen o da sıradaki ekstreye eklenir.</div></details>
-      </div>
-      </details>
-
-      ${limHtml || TL.length ? `<div class="grid g2" style="margin-top:0">
-        ${limHtml ? `<details class="sec-fold" data-fold="lim"><summary><h2>Limit</h2><span class="hint">borç + dönem içi + kalan taksitler + bekleyen</span></summary>
+        ${limHtml ? `<details class="sec-fold" data-fold="lim" style="order:8"><summary><h2>Limit</h2><span class="hint">borç + dönem içi + kalan taksitler + bekleyen</span></summary>
           <div class="card">${limHtml}</div>
         </details>` : ""}
-        ${TL.length ? `<details class="sec-fold" data-fold="trend"><summary><h2>Aylık harcama</h2><span class="hint">${hasFut ? "kesilen · bu dönem · gelecek" : "kesilen ekstreler"} · TL</span></summary>
+        ${TL.length ? `<details class="sec-fold" data-fold="trend" style="order:9"><summary><h2>Aylık harcama</h2><span class="hint">${hasFut ? "kesilen · bu dönem · gelecek" : "kesilen ekstreler"} · TL</span></summary>
           <div class="card">${trendHtml}</div>
         </details>` : ""}
-      </div>` : ""}
+      </aside>
+      </div>
     `;
     /* Detay bölümlerinin açık/kapalı hali yeniden çizimlerde korunsun (varsayılan: sadece "Bu dönem" açık) */
     /* ödeme / iade sonrası ilgili satırı kısa süre vurgula */
@@ -291,7 +294,7 @@
       if (row) { row.classList.add("flash"); try { row.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch (e) { } }
     }
     App.flash = null;
-    App.fold = App.fold || { fc: true };
+    if (!App.fold) { const wide = window.matchMedia("(min-width:1280px)").matches; App.fold = { fc: true, lim: wide, trend: wide }; }
     $$("details[data-fold]", el).forEach(d => {
       d.open = !!App.fold[d.dataset.fold];
       d.addEventListener("toggle", () => { App.fold[d.dataset.fold] = d.open; });

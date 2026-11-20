@@ -141,13 +141,17 @@
       let p = box.querySelector(":scope > .spill");
       if (!b || !b.offsetWidth) { box.classList.remove("has-pill"); return; }
       if (!p) { p = document.createElement("span"); p.className = "spill"; p.setAttribute("aria-hidden", "true"); box.prepend(p); ro.observe(box); animate = false; }
-      const L = b.offsetLeft, R = box.clientWidth - L - b.offsetWidth, prev = parseFloat(p.style.left);
-      if (!animate || reduce.matches || isNaN(prev) || prev === L) p.style.transition = "none";
+      const L = b.offsetLeft, R = box.clientWidth - L - b.offsetWidth, T = b.offsetTop, B = box.clientHeight - T - b.offsetHeight;
+      const pL = parseFloat(p.style.left), pT = parseFloat(p.style.top);
+      if (!animate || reduce.matches || isNaN(pL) || (pL === L && pT === T)) p.style.transition = "none";
       else {
-        const fwd = L > prev, lead = ".32s cubic-bezier(.16,1,.3,1)", trail = ".6s cubic-bezier(.8,0,.2,1) .05s";
-        p.style.transition = `left ${fwd ? trail : lead}, right ${fwd ? lead : trail}`;
+        /* yatay ya da dikey (kenar çubuğu): gidilen yöndeki kenar önden, öbürü geriden */
+        const lead = ".32s cubic-bezier(.16,1,.3,1)", trail = ".6s cubic-bezier(.8,0,.2,1) .05s";
+        const v = pT !== T && pL === L, fwd = v ? T > pT : L > pL;
+        const [a, z] = v ? ["top", "bottom"] : ["left", "right"];
+        p.style.transition = `${a} ${fwd ? trail : lead}, ${z} ${fwd ? lead : trail}`;
       }
-      Object.assign(p.style, { left: L + "px", right: R + "px", top: b.offsetTop + "px", height: b.offsetHeight + "px" });
+      Object.assign(p.style, { left: L + "px", right: R + "px", top: T + "px", bottom: B + "px", height: "auto" });
       box.classList.add("has-pill");
     };
     const flush = () => { queue.forEach((anim, box) => box.isConnected && place(box, anim)); queue.clear(); };
