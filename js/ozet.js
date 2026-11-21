@@ -299,17 +299,10 @@
     if (nextHtml) W.next = { size: "w4", name: "Sıradaki iş", html: nextHtml };
     W.pay = { size: "w8 tall", name: "Ödeme takvimi", html: `<div class="card" id="payList">${wh("Ödeme takvimi", "son ödeme tarihine göre")}<div class="list">${payListHtml}</div>${closedHtml}</div>` };
 
-    /* 8) canlı faiz sayacı */
-    let fzBase = 0, fzDay = 0;
-    S.open.forEach(i => {
-      const A = i.accr; if (!(A && A.full > K.EPS) || i.row.rem <= K.EPS) return;
-      const rt = K.toTL(DB, 1, i.ccy, nowYM) || 0;
-      fzBase += A.sofar * rt;
-      fzDay += (A.full - A.sofar) / Math.max(1, K.dayDiff(t, new Date(A.nextCut))) * rt;
-    });
-    W.faiz = { size: "w4", name: "İşleyen faiz", html: `<div class="card clickable" data-act="goReports" title="Raporlarda aylık faizi gör">${wh("Şu an işleyen faiz", "canlı")}
-      ${fzDay > K.EPS ? `<div class="fz-num" data-base="${fzBase}" data-day="${fzDay}">${K.fmt(fzBase)}</div><div class="fz-sub">günde ≈ <b>${K.fmt(fzDay)}</b> · ödemediğin her saniye artıyor</div>`
-        : `<div class="fz-num ok">${K.fmt(0)}</div><div class="fz-sub">Şu an faiz işleyen hesap yok ✓</div>`}
+    /* 8) işleyen faiz: gün bazında, üstteki yıl faizi kutusuyla aynı kaynak */
+    W.faiz = { size: "w4", name: "İşleyen faiz", html: `<div class="card clickable" data-act="goReports" title="Raporlarda aylık faizi gör">${wh("İşleyen faiz", "bugüne kadar")}
+      ${IR.accruing > K.EPS ? `<div class="fz-num">${moneyHtml(IR.accruing)}</div><div class="fz-sub">sonraki ekstrelere eklenecek</div>`
+        : `<div class="fz-num ok">${moneyHtml(0)}</div><div class="fz-sub">Şu an faiz işleyen hesap yok ✓</div>`}
       <div class="fz-sub faint">${t.getFullYear()} yılında ekstrelere giren: ${K.fmt(IR.total)}</div></div>` };
 
     /* 6) mini ay takvimi */
@@ -403,19 +396,6 @@
 
     el.innerHTML = `${alertsHtml}${recapHtml}${kpisHtml}${dashBar}<div class="bento ${editing ? "editing" : ""}">${bento}</div>`;
 
-    /* canlı faiz sayacı: saniyede bir, günün geçen kısmı kadar artar */
-    clearInterval(App._fzTimer);
-    const fzEl = el.querySelector(".fz-num[data-day]");
-    if (fzEl) {
-      const base = +fzEl.dataset.base, day = +fzEl.dataset.day;
-      const tick = () => {
-        if (!document.contains(fzEl)) { clearInterval(App._fzTimer); return; }
-        const n = new Date(), frac = (n - new Date(n.getFullYear(), n.getMonth(), n.getDate())) / 864e5;
-        const s4 = (base + day * frac).toLocaleString("tr-TR", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-        fzEl.innerHTML = `₺${s4.slice(0, -2)}<span class="cents">${s4.slice(-2)}</span>`;
-      };
-      tick(); App._fzTimer = setInterval(tick, 1000);
-    }
     if (editing) bindDashDrag(el.querySelector(".bento"));
 
     /* ödeme / iade sonrası ilgili satırı kısa süre vurgula */
